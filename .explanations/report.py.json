@@ -1,0 +1,82 @@
+{
+  "tech_stack": [
+    "logging",
+    "re",
+    "datetime",
+    "DailyReport"
+  ],
+  "outline": [
+    {
+      "title": "模块文档与设计说明 (L1-L14)",
+      "line": 1
+    },
+    {
+      "title": "导入与配置 (L16-L22)",
+      "line": 16
+    },
+    {
+      "title": "辅助函数：解析商品表格 (L25-L63)",
+      "line": 25
+    },
+    {
+      "title": "核心函数：构建日报 Markdown (L66-L122)",
+      "line": 66
+    }
+  ],
+  "functions": [
+    {
+      "name": "_parse_product_table",
+      "line": 25,
+      "summary": "从原始表格文本解析商品列表",
+      "detail": "内部辅助函数，输入爬虫抓取的原始文本，输出结构化商品列表。逐行处理，过滤表头行，用正则提取数字作为销量，按空格分割提取商品名，最后按销量降序排序。"
+    },
+    {
+      "name": "build_markdown_report",
+      "line": 66,
+      "summary": "根据 DailyReport 构建游乐场日报 Markdown",
+      "detail": "核心函数，接收 DailyReport 对象和可选日期，生成企微 Markdown 格式日报。包含头部日期、核心营收指标、关键收入明细表、商品消费排名表、尾部自动生成时间戳。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 25,
+      "end": 63,
+      "text": "定义 _parse_product_table 函数，从原始文本解析商品列表，过滤表头、提取商品名和销量，按销量降序排序。"
+    },
+    {
+      "start": 66,
+      "end": 122,
+      "text": "定义 build_markdown_report 函数，构建日报 Markdown 字符串，包含头部、核心指标、收入明细、商品排名和尾部。"
+    },
+    {
+      "start": 79,
+      "end": 80,
+      "text": "设置日期和当前时间字符串，用于日报头部和尾部。"
+    },
+    {
+      "start": 84,
+      "end": 89,
+      "text": "构建日报头部，包含标题、日期和查询时间范围。"
+    },
+    {
+      "start": 92,
+      "end": 93,
+      "text": "显示今日营业实收核心指标，格式化为整数元。"
+    },
+    {
+      "start": 96,
+      "end": 104,
+      "text": "构建关键收入明细表格，只显示金额大于0的项目。"
+    },
+    {
+      "start": 107,
+      "end": 116,
+      "text": "构建商品消费单数排名表格，从 report.product_ranking 获取数据。"
+    },
+    {
+      "start": 119,
+      "end": 122,
+      "text": "构建日报尾部，包含分隔线和自动生成时间戳，返回拼接后的 Markdown 字符串。"
+    }
+  ]
+}

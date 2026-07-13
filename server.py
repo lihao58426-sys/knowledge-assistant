@@ -56,6 +56,43 @@ async def api_ask(request: Request):
         request=request, question=q, answer=a, turns=turns,
         active_project=project, mode="search", tutor_files=[], projects=PROJECT_ROOTS.keys()))
 
+# ── 阅读模式（V3.2）：预生成讲解 → 左右联动 ──
+
+@app.get("/reader", response_class=HTMLResponse)
+async def reader_page(request: Request):
+    """阅读模式 — 预生成讲解 + 目录跳转 + 双向联动"""
+    import json as _json
+    project = request.query_params.get("project", "")
+    filepath = request.query_params.get("file", "")
+    code_lines = []
+    fname = ""
+    has_explain = False
+    explain_json = "null"
+
+    if filepath and _os.path.exists(filepath):
+        with open(filepath, "r", encoding="utf-8") as f:
+            code_lines = f.read().split('\n')
+        fname = _os.path.basename(filepath)
+
+        # 查预生成讲解
+        explain_path = _os.path.join(
+            _os.path.dirname(_os.path.abspath(__file__)),
+            ".explanations", f"{fname}.json"
+        )
+        if _os.path.exists(explain_path):
+            with open(explain_path, "r", encoding="utf-8") as f:
+                explain_json = f.read()
+                has_explain = True
+
+    return HTMLResponse(jinja_env.get_template("reader.html").render(
+        request=request, project=project, filepath=filepath, fname=fname,
+        code_json=_json.dumps(code_lines, ensure_ascii=False),
+        filepath_json=_json.dumps(filepath, ensure_ascii=False) if filepath else '""',
+        has_explain=has_explain,
+        explain_json=explain_json,
+    ))
+
+
 # ── 导师模式：读整个文件 → 发给 DeepSeek 讲解 ──
 
 import os as _os

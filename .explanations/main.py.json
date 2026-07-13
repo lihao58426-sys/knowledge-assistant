@@ -1,0 +1,116 @@
+{
+  "tech_stack": [
+    "logging",
+    "sys",
+    "datetime",
+    "config",
+    "crawler",
+    "models",
+    "database",
+    "report",
+    "pusher"
+  ],
+  "outline": [
+    {
+      "title": "模块文档与调用链 (L1-L19)",
+      "line": 1
+    },
+    {
+      "title": "导入与日志配置 (L21-L41)",
+      "line": 21
+    },
+    {
+      "title": "辅助函数 _print_separator (L44-L51)",
+      "line": 44
+    },
+    {
+      "title": "主函数 main 入口 (L54-L145)",
+      "line": 54
+    },
+    {
+      "title": "DRY RUN 判断 (L57-L66)",
+      "line": 57
+    },
+    {
+      "title": "加载配置与门店循环 (L68-L99)",
+      "line": 68
+    },
+    {
+      "title": "构建日报内容 (L105-L116)",
+      "line": 105
+    },
+    {
+      "title": "推送逻辑 (L118-L141)",
+      "line": 118
+    },
+    {
+      "title": "运行完成日志 (L143-L145)",
+      "line": 143
+    },
+    {
+      "title": "定时任务模式注释 (L152-L217)",
+      "line": 152
+    }
+  ],
+  "functions": [
+    {
+      "name": "_print_separator",
+      "line": 44,
+      "summary": "打印分隔线，美化控制台输出",
+      "detail": "接受可选标题参数，有标题时打印带标题的分隔线，否则只打印纯分隔线。用于在控制台中清晰区分不同阶段。无返回值。"
+    },
+    {
+      "name": "main",
+      "line": 54,
+      "summary": "日报推送主流程，支持多店处理",
+      "detail": "检查命令行参数判断是否为DRY RUN模式。加载配置后遍历所有门店，对每个门店创建爬虫实例抓取数据，转换为DailyReport对象并存入SQLite数据库。收集所有成功报告后构建Markdown日报内容，根据配置的推送方式（目前支持wework_bot）发送到企业微信群。失败时记录错误并退出。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 57,
+      "end": 57,
+      "text": "检查命令行参数是否包含 --dry-run，决定是否进入演习模式"
+    },
+    {
+      "start": 69,
+      "end": 70,
+      "text": "调用 config.load_config() 加载YAML配置，获取门店列表，默认使用单个门店配置"
+    },
+    {
+      "start": 81,
+      "end": 82,
+      "text": "为每个门店创建爬虫实例并执行抓取，返回原始数据字典"
+    },
+    {
+      "start": 88,
+      "end": 88,
+      "text": "将爬虫返回的字典通过 DailyReport.from_crawler_dict 转换为结构化数据对象"
+    },
+    {
+      "start": 91,
+      "end": 97,
+      "text": "打开SQLite数据库连接，插入日报记录和商品排名，并打印历史汇总信息"
+    },
+    {
+      "start": 106,
+      "end": 115,
+      "text": "根据门店数量决定日报格式：单店直接构建，多店则用标题分隔拼接"
+    },
+    {
+      "start": 121,
+      "end": 124,
+      "text": "DRY RUN模式下打印日报内容预览，不实际推送"
+    },
+    {
+      "start": 126,
+      "end": 137,
+      "text": "非演习模式且推送方式为wework_bot时，获取Webhook URL并调用WeWorkBotPush发送Markdown消息"
+    },
+    {
+      "start": 148,
+      "end": 149,
+      "text": "脚本入口：当直接运行时调用main函数启动整个流程"
+    }
+  ]
+}

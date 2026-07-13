@@ -1,0 +1,77 @@
+{
+  "tech_stack": [
+    "dataclasses"
+  ],
+  "outline": [
+    {
+      "title": "导入与配置 (L1-L16)",
+      "line": 1
+    },
+    {
+      "title": "RevenueItem 数据类 (L19-L23)",
+      "line": 19
+    },
+    {
+      "title": "DailyReport 数据类 (L26-L40)",
+      "line": 26
+    },
+    {
+      "title": "from_crawler_dict 工厂方法 (L42-L57)",
+      "line": 42
+    },
+    {
+      "title": "revenue_items 属性 (L59-L68)",
+      "line": 59
+    },
+    {
+      "title": "StoreInfo 数据类 (L71-L77)",
+      "line": 71
+    }
+  ],
+  "functions": [
+    {
+      "name": "from_crawler_dict",
+      "line": 43,
+      "summary": "从爬虫返回的 dict 构造 DailyReport",
+      "detail": "接收一个字典，将中文键映射为 DailyReport 的字段。使用 data.get 安全取值，并做类型转换，如 float 和 str。返回 DailyReport 实例。"
+    },
+    {
+      "name": "revenue_items",
+      "line": 60,
+      "summary": "返回金额 > 0 的收入明细列表",
+      "detail": "将 card_recharge 等四个字段组合成元组列表，过滤掉金额为 0 的项，并转换为 RevenueItem 对象列表。供后续报表拼接使用。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 6,
+      "end": 10,
+      "text": "解释为什么使用 dataclass：字段名是属性，编辑器自动补全，避免拼错 key；类型标注明确字段类型；对比 dict.get 的缺点。"
+    },
+    {
+      "start": 19,
+      "end": 23,
+      "text": "定义 RevenueItem 数据类，包含 name（str）和 amount（float）两个字段，表示单条收入明细。"
+    },
+    {
+      "start": 26,
+      "end": 40,
+      "text": "定义 DailyReport 数据类，包含多个收入字段和原始文本字段。使用 field(default_factory=list) 处理可变默认值。"
+    },
+    {
+      "start": 42,
+      "end": 57,
+      "text": "定义 from_crawler_dict 类方法，将爬虫返回的中文键字典转换为 DailyReport 实例。使用 data.get 安全取值，并做类型转换。"
+    },
+    {
+      "start": 59,
+      "end": 68,
+      "text": "定义 revenue_items 属性，将四个收入字段组合成 RevenueItem 列表，供报表使用。"
+    },
+    {
+      "start": 71,
+      "end": 77,
+      "text": "定义 StoreInfo 数据类，包含 store_id、store_name 和 pos_account 字段，为多店支持做准备。"
+    }
+  ]
+}

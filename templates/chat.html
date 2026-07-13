@@ -79,10 +79,10 @@
   <div class="file-row">
     <input type="checkbox" name="files" value="{{ f }}" style="width:15px;height:15px">
     <span class="nm">
-      <a href="/code-tutor?project={{ active_project }}&file={{ f|urlencode }}" style="color:#4f46e5;text-decoration:none;font-weight:500">{{ f.replace('\\','/').split('/')[-1] }}</a>
+      <a href="/reader?project={{ active_project }}&file={{ f|urlencode }}" style="color:#4f46e5;text-decoration:none;font-weight:500">{{ f.replace('\\','/').split('/')[-1] }}</a>
     </span>
     <span class="dir">{{ f.replace('\\','/').split('/')[-2] }}</span>
-    <span style="font-size:11px"><a href="/code-tutor?project={{ active_project }}&file={{ f|urlencode }}" style="color:#94a3b8">逐行学→</a></span>
+    <span style="font-size:11px"><a href="/reader?project={{ active_project }}&file={{ f|urlencode }}" style="color:#10b981">📖阅读</a></span>
   </div>
   {% endfor %}
   </div>

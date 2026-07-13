@@ -1,0 +1,84 @@
+{
+  "tech_stack": [
+    "requests"
+  ],
+  "outline": [
+    {
+      "title": "模块文档 (L1-L10)",
+      "line": 1
+    },
+    {
+      "title": "导入依赖 (L12-L19)",
+      "line": 12
+    },
+    {
+      "title": "类定义与初始化 (L22-L37)",
+      "line": 22
+    },
+    {
+      "title": "发送 Markdown 消息 (L39-L52)",
+      "line": 39
+    },
+    {
+      "title": "底层 HTTP 发送逻辑 (L54-L82)",
+      "line": 54
+    }
+  ],
+  "functions": [
+    {
+      "name": "__init__",
+      "line": 30,
+      "summary": "初始化推送器，存储 webhook URL",
+      "detail": "接收 webhook_url 参数并赋值给 self.webhook_url，用于后续发送请求。"
+    },
+    {
+      "name": "send_markdown",
+      "line": 39,
+      "summary": "发送 Markdown 格式消息到企微群",
+      "detail": "构造包含 msgtype 和 markdown 内容的 payload，调用 _send 方法执行发送，返回布尔值表示成功或失败。"
+    },
+    {
+      "name": "_send",
+      "line": 54,
+      "summary": "底层 HTTP 发送逻辑，处理请求与异常",
+      "detail": "使用 requests.post 发送 JSON 数据，设置超时和编码。检查响应中的 errcode 判断成功，记录日志。捕获网络连接、超时和请求异常，转换为自定义 PushError 抛出。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 22,
+      "end": 28,
+      "text": "定义 WeWorkBotPush 类，封装企业微信群机器人推送功能，提供 send_markdown 接口。"
+    },
+    {
+      "start": 30,
+      "end": 37,
+      "text": "构造函数接收 webhook_url，存储为实例变量，用于后续发送请求。"
+    },
+    {
+      "start": 39,
+      "end": 52,
+      "text": "send_markdown 方法构造 Markdown 消息 payload，调用 _send 执行发送，返回布尔值。"
+    },
+    {
+      "start": 54,
+      "end": 82,
+      "text": "_send 方法实现 HTTP 发送，处理成功/失败响应，捕获网络异常并转为 PushError。"
+    },
+    {
+      "start": 63,
+      "end": 69,
+      "text": "使用 requests.post 发送 JSON 数据，设置超时 10 秒，确保编码正确。"
+    },
+    {
+      "start": 70,
+      "end": 76,
+      "text": "解析响应 JSON，检查 errcode 判断成功，记录日志并返回布尔值。"
+    },
+    {
+      "start": 77,
+      "end": 82,
+      "text": "捕获 ConnectionError、Timeout 和 RequestException，抛出 PushError 异常，便于上层处理。"
+    }
+  ]
+}

@@ -1,0 +1,192 @@
+{
+  "tech_stack": [
+    "playwright",
+    "json",
+    "os",
+    "random",
+    "re",
+    "time",
+    "logging"
+  ],
+  "outline": [
+    {
+      "title": "导入与配置 (L1-L16)",
+      "line": 1
+    },
+    {
+      "title": "类定义与初始化 (L19-L38)",
+      "line": 19
+    },
+    {
+      "title": "辅助方法：模拟人类操作 (L40-L61)",
+      "line": 40
+    },
+    {
+      "title": "主流程 run() (L63-L227)",
+      "line": 63
+    },
+    {
+      "title": "登录逻辑 _login() (L229-L314)",
+      "line": 229
+    },
+    {
+      "title": "关闭公告弹窗 (L316-L341)",
+      "line": 316
+    },
+    {
+      "title": "导航与数据提取辅助方法 (L343-L421)",
+      "line": 343
+    },
+    {
+      "title": "商品排名解析 (L423-L498)",
+      "line": 423
+    },
+    {
+      "title": "时间跨度提取 (L500-L515)",
+      "line": 500
+    },
+    {
+      "title": "已废弃方法 (L517-L635)",
+      "line": 517
+    }
+  ],
+  "functions": [
+    {
+      "name": "__init__",
+      "line": 24,
+      "summary": "初始化爬虫实例，配置账号、密码、延迟等参数",
+      "detail": "从config字典和可选的store字典中读取配置，包括账号密码环境变量名、无头模式、超时时间、Cookie文件路径以及模拟人类操作的延迟范围。"
+    },
+    {
+      "name": "_pause",
+      "line": 40,
+      "summary": "模拟真人间歇，每次操作后随机停顿",
+      "detail": "在min_delay和max_delay之间随机生成延迟时间，并可选输出日志标签，使操作节奏更自然。"
+    },
+    {
+      "name": "_human_move",
+      "line": 51,
+      "summary": "模拟真人鼠标移动，分多步带微抖动",
+      "detail": "将鼠标移动分解为10-25步，并添加随机偏移，避免Playwright默认的瞬间直达被反爬检测。"
+    },
+    {
+      "name": "run",
+      "line": 63,
+      "summary": "执行完整的数据抓取流程",
+      "detail": "启动浏览器，登录，关闭弹窗，抓取首页营业实收，滚动加载商品消费单数排名，进入营业概况明细页提取储值卡充值等数据，最后返回结果字典。"
+    },
+    {
+      "name": "_login",
+      "line": 229,
+      "summary": "登录银豹云后台，优先使用Cookie",
+      "detail": "尝试加载本地Cookie文件，若有效则直接跳转；否则填写账号密码并点击登录按钮，等待跳转后保存新Cookie。"
+    },
+    {
+      "name": "_close_announcement",
+      "line": 316,
+      "summary": "关闭登录后可能出现的公告弹窗",
+      "detail": "等待弹窗加载后，尝试多种选择器（如'关闭'、'确定'、'知道了'等）点击关闭按钮。"
+    },
+    {
+      "name": "_click_left_nav",
+      "line": 343,
+      "summary": "按顺序点击左侧导航菜单项",
+      "detail": "对每个菜单项文本，依次尝试多种定位方式（text、span、class包含menu），点击后等待1.5秒。"
+    },
+    {
+      "name": "_extract_value_after_label",
+      "line": 359,
+      "summary": "提取某个文本标签旁边/下面的数值",
+      "detail": "定位标签元素，获取父元素文本，用正则提取第一个数字（支持千分位逗号）。"
+    },
+    {
+      "name": "_extract_table_text",
+      "line": 374,
+      "summary": "提取页面表格文本，退化到抓主区域文本",
+      "detail": "尝试多种表格选择器，取内容最长的文本；若均无结果则抓取body文本。"
+    },
+    {
+      "name": "_extract_value_near_label",
+      "line": 408,
+      "summary": "从文本中提取label后面的金额",
+      "detail": "在文本中定位label，截取其后80字符，用正则匹配带可选符号、¥、千分位逗号的数字。"
+    },
+    {
+      "name": "_parse_product_ranking_from_page",
+      "line": 423,
+      "summary": "从页面提取商品消费单数排名",
+      "detail": "定位'商品消费单数排名'卡片，确认'销量'标签激活，遍历.percentBar元素提取商品名和数量。"
+    },
+    {
+      "name": "_parse_product_ranking",
+      "line": 480,
+      "summary": "旧版正则方式解析商品消费单数排名文本",
+      "detail": "使用正则匹配'商品名 数字单'格式，保留兼容旧数据格式。"
+    },
+    {
+      "name": "_extract_time_range",
+      "line": 500,
+      "summary": "提取页面右上角的时间跨度",
+      "detail": "优先通过class选择器获取时间元素，若失败则从body文本中正则匹配日期时间范围。"
+    },
+    {
+      "name": "_scrape_overview",
+      "line": 518,
+      "summary": "[已废弃] 抓取概览页核心数据",
+      "detail": "旧版方法，逻辑已迁移到run()中，保留作为历史参考。"
+    },
+    {
+      "name": "_scrape_product_sales",
+      "line": 600,
+      "summary": "[已废弃] 在首页滚动抓取商品消费单数排名",
+      "detail": "旧版方法，逻辑已迁移到run()中，保留作为历史参考。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 24,
+      "end": 38,
+      "text": "构造函数初始化爬虫实例，从config和store字典中读取账号密码、无头模式、超时时间、Cookie路径以及模拟人类操作的延迟范围。"
+    },
+    {
+      "start": 40,
+      "end": 49,
+      "text": "_pause方法模拟真人间歇，每次操作后随机停顿1-3秒，使操作节奏更自然。"
+    },
+    {
+      "start": 51,
+      "end": 61,
+      "text": "_human_move方法模拟真人鼠标移动，分10-25步并添加随机偏移，避免被反爬检测。"
+    },
+    {
+      "start": 63,
+      "end": 227,
+      "text": "run方法是主流程，依次执行登录、关闭弹窗、抓取首页营业实收、滚动加载商品排名、进入营业概况明细页提取数据。"
+    },
+    {
+      "start": 229,
+      "end": 314,
+      "text": "_login方法优先尝试Cookie登录，若失效则填写账号密码，点击登录按钮，等待跳转后保存新Cookie。"
+    },
+    {
+      "start": 316,
+      "end": 341,
+      "text": "_close_announcement方法尝试多种选择器关闭公告弹窗，确保后续操作不受干扰。"
+    },
+    {
+      "start": 359,
+      "end": 372,
+      "text": "_extract_value_after_label方法通过定位标签元素，获取父元素文本并用正则提取第一个数字。"
+    },
+    {
+      "start": 423,
+      "end": 478,
+      "text": "_parse_product_ranking_from_page方法精确锁定'商品消费单数排名'卡片，遍历商品条目提取名称和数量。"
+    },
+    {
+      "start": 500,
+      "end": 515,
+      "text": "_extract_time_range方法优先通过class选择器获取时间元素，失败则从body文本正则匹配日期时间范围。"
+    }
+  ]
+}

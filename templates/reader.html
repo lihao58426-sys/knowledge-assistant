@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阅读模式</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#0f172a;color:#e2e8f0;overflow:hidden;height:100vh}
+.header{background:#1e293b;padding:8px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #334155;font-size:13px}
+.header a{color:#94a3b8;text-decoration:none}
+.header .fname{color:#e2e8f0;font-weight:600;flex:1}
+.header button{background:#4f46e5;color:#fff;border:none;padding:4px 12px;border-radius:5px;font-size:11px;cursor:pointer}
+.main{display:flex;height:calc(100vh - 38px)}
+/* 左栏：代码 */
+.code-pane{width:42%;overflow-y:auto;border-right:1px solid #334155;font-family:Consolas,monospace;font-size:13px;line-height:1.75;padding:4px 0;background:#0f172a}
+.code-line{display:flex;cursor:pointer;padding:1px 10px;border-left:3px solid transparent;scroll-margin-top:20px}
+.code-line:hover{background:#1e293b}
+.code-line.active{border-left-color:#818cf8;background:#312e81}
+.code-line.highlight{background:#1e293b;border-left-color:#f59e0b}
+.code-line .ln{color:#475569;width:32px;text-align:right;margin-right:10px;user-select:none;flex-shrink:0;font-size:11px}
+.code-line .cd{color:#94a3b8;white-space:pre-wrap;word-break:break-all}
+/* 右栏 */
+.right-pane{width:58%;display:flex;flex-direction:column;overflow:hidden}
+.explain-pane{flex:1;overflow-y:auto;padding:16px;background:#1e293b}
+.qa-pane{display:none;border-top:1px solid #334155;background:#0f172a;padding:12px 16px;max-height:40%;overflow-y:auto}
+.qa-pane.show{display:block}
+/* 讲解块 */
+.section{margin-bottom:16px}
+.section-title{font-size:13px;font-weight:700;color:#818cf8;margin-bottom:6px;cursor:pointer}
+.section-title:hover{text-decoration:underline}
+.outline-item{padding:4px 0;font-size:13px;color:#94a3b8;cursor:pointer}
+.outline-item:hover{color:#e2e8f0}
+.outline-item .ln-ref{color:#f59e0b;font-size:11px;margin-right:6px}
+.explain-block{margin-bottom:12px;padding:8px 12px;background:#0f172a;border-radius:8px;border-left:3px solid #334155}
+.explain-block .ex-ln{font-size:10px;color:#818cf8;margin-bottom:4px}
+.explain-block .ex-text{font-size:14px;line-height:1.7;color:#cbd5e1;white-space:pre-wrap}
+.explain-block .ex-edit{font-size:11px;color:#64748b;cursor:pointer;margin-top:4px}
+.explain-block textarea{width:100%;background:#1e293b;color:#e2e8f0;border:1px solid #4f46e5;border-radius:6px;padding:8px;font-size:13px;line-height:1.6;resize:vertical;margin-top:4px}
+.fn-block{margin-bottom:14px;padding:12px;background:#0f172a;border-radius:10px}
+.fn-block .fn-name{font-size:15px;font-weight:700;color:#f59e0b;cursor:pointer}
+.fn-block .fn-summary{font-size:14px;color:#cbd5e1;margin:6px 0}
+.fn-block .fn-detail{font-size:13px;color:#94a3b8;line-height:1.7;margin-top:4px}
+/* 技术栈标签 */
+.tech-tag{display:inline-block;font-size:11px;padding:2px 8px;margin:2px 4px 2px 0;background:#312e81;color:#a5b4fc;border-radius:4px}
+/* 底部追问 */
+.qa-bar{padding:8px 12px;background:#1e293b;display:flex;gap:8px;align-items:center}
+.qa-bar input{flex:1;padding:6px 10px;border:1px solid #334155;border-radius:6px;background:#0f172a;color:#e2e8f0;font-size:13px;outline:none}
+.qa-bar input:focus{border-color:#4f46e5}
+.qa-bar button{background:#4f46e5;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer}
+.qa-bar select{padding:6px;border:1px solid #334155;border-radius:6px;background:#0f172a;color:#e2e8f0;font-size:12px}
+.qa-item{margin-bottom:12px;padding:10px;background:#1e293b;border-radius:8px}
+.qa-item .qq{font-size:13px;color:#f59e0b;font-weight:600;margin-bottom:4px}
+.qa-item .aa{font-size:13px;color:#cbd5e1;line-height:1.7;white-space:pre-wrap}
+.loading{text-align:center;color:#64748b;padding:40px}
+.empty{text-align:center;color:#64748b;padding:40px;font-size:14px}
+/* 笔记面板 */
+.notes-panel{display:none;position:fixed;top:38px;right:0;width:380px;height:calc(100vh-38px);background:#0a0f1a;border-left:1px solid #1e293b;z-index:20;flex-direction:column;box-shadow:-4px 0 20px rgba(0,0,0,.5)}
+.notes-panel.show{display:flex}
+.notes-panel h3{font-size:15px;color:#e2e8f0;font-weight:700;letter-spacing:0.5px}
+.notes-panel .note-search-wrap{padding:14px 16px;border-bottom:1px solid #1e293b}
+.notes-panel #noteSearch{width:100%;padding:10px 14px;border:1px solid #1e293b;border-radius:8px;background:#0f172a;color:#e2e8f0;font-size:13px;outline:none;transition:border-color .2s}
+.notes-panel #noteSearch:focus{border-color:#4f46e5}
+.notes-panel .note-list-wrap{flex:1;overflow-y:auto;padding:12px 16px}
+.notes-panel .note-card{padding:0;background:#111827;border-radius:10px;margin-bottom:8px;border:1px solid #1e293b;transition:all .15s;overflow:hidden}
+.notes-panel .note-card .nc-header{padding:11px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.notes-panel .note-card .nc-detail{padding:0 14px 14px}
+.notes-panel .note-card .nc-detail .nc-code{margin-top:0}
+.notes-panel .note-card:hover{border-color:#334155;background:#1a2236}
+.notes-panel .note-card .nc-label{color:#f59e0b;font-weight:700;font-size:14px;flex:1}
+.notes-panel .note-card .nc-lines{color:#818cf8;font-size:11px;font-weight:600;white-space:nowrap;margin-left:8px}
+.notes-panel .note-card .nc-content{color:#cbd5e1;font-size:13px;line-height:1.7;margin:8px 0;word-break:break-word}
+.notes-panel .note-card .nc-code{background:#0f172a;color:#94a3b8;font-family:Consolas,monospace;font-size:11px;line-height:1.6;padding:10px 12px;border-radius:6px;margin:8px 0;white-space:pre-wrap;word-break:break-all;max-height:120px;overflow-y:auto;border:1px solid #1e293b}
+.notes-panel .note-card .nc-footer{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#475569}
+.notes-panel .note-card .nc-del{color:#ef4444;font-size:11px;cursor:pointer;opacity:0;transition:opacity .15s}
+.notes-panel .note-card:hover .nc-del{opacity:1}
+.notes-panel .empty-notes{text-align:center;color:#475569;padding:40px 20px;font-size:13px;line-height:2}
+/* 笔记编辑弹窗 */
+.note-modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:100;align-items:center;justify-content:center}
+.note-modal.show{display:flex}
+.note-modal-bg{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6)}
+.note-modal-box{position:relative;width:560px;max-width:90vw;max-height:80vh;background:#1e293b;border-radius:14px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.5);overflow-y:auto}
+.note-modal-box textarea:focus,.note-modal-box input:focus{border-color:#4f46e5!important}
+/* 代码行笔记标记 */
+.code-line .note-marker{font-size:9px;color:#f59e0b;margin-left:4px;cursor:pointer;display:none}
+.code-line.has-note .note-marker{display:inline}
+.code-line.has-note{background:#1a1700}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="/">← 返回</a>
+  <span class="fname" id="fname">{{ fname }}</span>
+  <button onclick="toggleNotesPanel()">📒 笔记 (<span id="noteCount">0</span>)</button>
+  <button onclick="addNote()">+ 记笔记</button>
+  <button onclick="toggleQA()">💬 追问</button>
+</div>
+
+<!-- 笔记编辑弹窗 -->
+<div class="note-modal" id="noteModal">
+  <div class="note-modal-bg" onclick="closeNoteModal()"></div>
+  <div class="note-modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <h3 style="color:#e2e8f0;font-size:16px">📝 记笔记 <span id="noteLineRange" style="color:#818cf8;font-size:13px"></span></h3>
+      <button onclick="closeNoteModal()" style="background:none;border:none;color:#64748b;font-size:20px;cursor:pointer">✕</button>
+    </div>
+    <input id="noteLabel" placeholder="笔记标签（不超过20字）" style="width:100%;padding:10px 14px;border:1px solid #334155;border-radius:8px;background:#0f172a;color:#e2e8f0;font-size:14px;margin-bottom:10px;outline:none" maxlength="20">
+    <textarea id="noteContent" placeholder="笔记内容（不超过500字）&#10;&#10;这里输入你的笔记..." style="width:100%;height:200px;padding:12px 14px;border:1px solid #334155;border-radius:8px;background:#0f172a;color:#e2e8f0;font-size:14px;line-height:1.7;resize:vertical;outline:none;font-family:inherit" maxlength="500"></textarea>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+      <span style="font-size:11px;color:#64748b" id="noteCharCount">0/500</span>
+      <div style="display:flex;gap:8px">
+        <button onclick="closeNoteModal()" style="background:#334155;color:#e2e8f0;border:none;padding:8px 20px;border-radius:8px;font-size:13px;cursor:pointer">取消</button>
+        <button onclick="saveNoteFromModal()" style="background:#4f46e5;color:#fff;border:none;padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">保存笔记</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 笔记侧边栏 -->
+<div class="notes-panel" id="notesPanel">
+  <div style="padding:14px 16px;border-bottom:1px solid #1e293b;display:flex;justify-content:space-between;align-items:center">
+    <h3>📒 我的笔记 · <span id="notePanelCount">0</span>/{{ max_notes|default(50) }}</h3>
+    <button onclick="toggleNotesPanel()" style="background:none;border:none;color:#64748b;font-size:20px;cursor:pointer;padding:4px 8px">✕</button>
+  </div>
+  <div class="note-search-wrap">
+    <input id="noteSearch" placeholder="🔍 搜索笔记..." oninput="renderNoteList()">
+  </div>
+  <div class="note-list-wrap" id="noteList"></div>
+</div>
+
+<div class="main">
+  <!-- 左：代码 -->
+  <div class="code-pane" id="codePane"></div>
+
+  <!-- 右 -->
+  <div class="right-pane">
+    <div class="explain-pane" id="explainPane">
+      <div class="loading">📖 加载讲解中...</div>
+    </div>
+
+    <div class="qa-pane" id="qaPane">
+      <div style="font-size:12px;color:#64748b;margin-bottom:8px">💬 追问</div>
+      <div id="qaList"></div>
+    </div>
+
+    <div class="qa-bar">
+      <span style="font-size:11px;color:#64748b;min-width:50px" id="selHint">选中0行</span>
+      <input id="qInput" placeholder="对选中行提问...">
+      <button onclick="askQA()">发送</button>
+      <button onclick="toggleQA()" style="background:#334155">收起</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const FILE = {{ filepath_json|safe }};
+const FULL_CODE = {{ code_json|safe }};
+const HAS_EXPLAIN = {{ 'true' if has_explain else 'false' }};
+let EXPLAIN_DATA = {{ explain_json|safe if has_explain else 'null' }};
+let selectedLines = [];
+let lastClicked = 0;
+let qaHistory = [];
+let notes = {};
+
+// ── 渲染代码 ──
+function renderCode() {
+  const pane = document.getElementById('codePane');
+  pane.innerHTML = FULL_CODE.map((l,i) => {
+    const ln = i+1;
+    return `<div class="code-line" id="L${ln}" onclick="onCodeClick(${ln},event)">
+      <span class="ln">${ln}</span><span class="cd">${esc(l)}</span></div>`;
+  }).join('');
+}
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function onCodeClick(ln, event) {
+  const el = document.getElementById('L'+ln);
+  if (event.shiftKey && lastClicked) {
+    const s=Math.min(lastClicked,ln), e=Math.max(lastClicked,ln);
+    for (let i=s; i<=e; i++) document.getElementById('L'+i).classList.add('active');
+    selectedLines = [...new Set([...selectedLines,...Array.from({length:e-s+1},(_,i)=>s+i)])].sort((a,b)=>a-b);
+  } else if (event.ctrlKey) {
+    el.classList.toggle('active');
+    if (el.classList.contains('active')) selectedLines.push(ln);
+    else selectedLines = selectedLines.filter(l=>l!==ln);
+    selectedLines.sort((a,b)=>a-b);
+  } else {
+    document.querySelectorAll('.code-line.active').forEach(l=>l.classList.remove('active'));
+    selectedLines = [ln];
+    el.classList.add('active');
+  }
+  lastClicked = ln;
+  document.getElementById('selHint').textContent = selectedLines.length+'行';
+  // 联动：右侧跳转到相关讲解
+  if (EXPLAIN_DATA) scrollExplainToLine(ln);
+}
+
+// ── 渲染讲解 ──
+function renderExplain() {
+  const pane = document.getElementById('explainPane');
+  if (!EXPLAIN_DATA) {
+    pane.innerHTML = '<div class="empty">暂无预生成讲解，请先在导师模式中选择文件</div>';
+    return;
+  }
+  const d = EXPLAIN_DATA;
+  loadNotes();
+  let html = '';
+
+  // 技术栈
+  if (d.tech_stack && d.tech_stack.length > 0) {
+    html += '<div class="section"><div class="section-title">🛠 技术栈</div>';
+    html += d.tech_stack.map(t=>`<span class="tech-tag">${esc(t)}</span>`).join('');
+    html += '</div>';
+  }
+
+  // 大纲（目录）
+  if (d.outline && d.outline.length > 0) {
+    html += '<div class="section"><div class="section-title">📑 目录</div>';
+    d.outline.forEach(o => {
+      html += `<div class="outline-item" onclick="jumpToLine(${o.line})"><span class="ln-ref">L${o.line}→</span>${esc(o.title)}</div>`;
+    });
+    html += '</div>';
+  }
+
+  // 函数总述
+  if (d.functions && d.functions.length > 0) {
+    html += '<div class="section"><div class="section-title">⚙️ 函数总览</div>';
+    d.functions.forEach(f => {
+      html += `<div class="fn-block" id="fn${f.line}">
+        <div class="fn-name" onclick="jumpToLine(${f.line})">def ${esc(f.name)}( ) → L${f.line}</div>
+        <div class="fn-summary">${esc(f.summary||'')}</div>
+        <div class="fn-detail">${esc(f.detail||'')}</div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  // 逐行讲解
+  if (d.lines && d.lines.length > 0) {
+    html += '<div class="section"><div class="section-title">📖 逐行讲解</div>';
+    d.lines.forEach((l,i) => {
+      const noteKey = `L${l.start}-L${l.end}`;
+      const matchingNotes = noteList.filter(n => l.start >= n.start && l.start <= n.end);
+      const noteTags = matchingNotes.map(n =>
+        `<span style="color:#f59e0b;font-size:11px;cursor:pointer;margin-left:3px" title="${esc(n.content)}" onclick="jumpToNote(${n.id})">📝${esc(n.label)}</span>`
+      ).join('');
+      html += `<div class="explain-block" id="ex${l.start}">
+        <div class="ex-ln" style="cursor:pointer" onclick="jumpToLine(${l.start})">L${l.start}-L${l.end} →${noteTags}</div>
+        <div class="ex-text" id="exText${i}">${esc(l.text)}</div>
+        <div class="ex-edit" onclick="addNoteAtLine(${l.start},${l.end})">✏️ 笔记</div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  pane.innerHTML = html;
+}
+
+function jumpToLine(ln) {
+  const el = document.getElementById('L'+ln);
+  if (el) {
+    el.scrollIntoView({behavior:'smooth',block:'center'});
+    document.querySelectorAll('.code-line.highlight').forEach(l=>l.classList.remove('highlight'));
+    el.classList.add('highlight');
+  }
+  // 同时滚动讲解
+  const exEl = document.getElementById('ex'+ln) || document.getElementById('fn'+ln);
+  if (exEl) exEl.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function scrollExplainToLine(ln) {
+  // 找最近的讲解块
+  if (!EXPLAIN_DATA || !EXPLAIN_DATA.lines) return;
+  let closest = null;
+  for (const l of EXPLAIN_DATA.lines) {
+    if (ln >= l.start && ln <= l.end) { closest = l; break; }
+  }
+  if (closest) {
+    const exEl = document.getElementById('ex'+closest.start);
+    if (exEl) exEl.scrollIntoView({behavior:'smooth',block:'center'});
+  }
+}
+
+// ── 追问 ──
+function toggleQA() { document.getElementById('qaPane').classList.toggle('show'); }
+async function askQA() {
+  const q = document.getElementById('qInput').value.trim();
+  if (!q) return;
+  const pane = document.getElementById('qaPane'); pane.classList.add('show');
+  const list = document.getElementById('qaList');
+  list.innerHTML += `<div class="qa-item"><div class="qq">⏳ ${esc(q)}</div><div class="aa">思考中...</div></div>`;
+
+  // 如有选中行，附上对应代码
+  let ctx = '';
+  if (selectedLines.length > 0) {
+    const s=Math.min(...selectedLines), e=Math.max(...selectedLines);
+    ctx = FULL_CODE.slice(s-1,e).join('\n');
+    ctx = `\n\n相关代码(L${s}-L${e}):\n${ctx}`;
+  }
+
+  try {
+    const form = new FormData();
+    form.append('file', FILE);
+    form.append('question', q + ctx);
+    const resp = await fetch('/code-tutor/explain', {method:'POST',body:form});
+    const data = await resp.json();
+    list.lastChild.innerHTML = `<div class="qq">💬 ${esc(q)}</div><div class="aa">${data.answer||data.error||'无回答'}</div>`;
+  } catch(e) {
+    list.lastChild.innerHTML = `<div class="qq">💬 ${esc(q)}</div><div class="aa" style="color:#ef4444">请求失败: ${e.message}</div>`;
+  }
+  document.getElementById('qInput').value = '';
+}
+
+// ── 笔记系统 ──
+const MAX_NOTES = {{ max_notes|default(50) }};
+const MAX_NOTE_LEN = 500;
+let noteList = [];  // [{id, start, end, label, content, date}]
+
+function loadNotes() {
+  try {
+    const raw = localStorage.getItem('readerNotes_'+FILE);
+    if (!raw) { noteList = []; return; }
+    const parsed = JSON.parse(raw);
+    // 兼容旧格式（对象 → 清空，用新格式数组）
+    if (Array.isArray(parsed)) { noteList = parsed; }
+    else { noteList = []; localStorage.removeItem('readerNotes_'+FILE); }
+  } catch(e) { noteList = []; }
+}
+function saveNotes() {
+  if (noteList.length > MAX_NOTES) { alert(`最多保存 ${MAX_NOTES} 条笔记`); return; }
+  localStorage.setItem('readerNotes_'+FILE, JSON.stringify(noteList));
+  document.getElementById('noteCount').textContent = noteList.length;
+  document.getElementById('notePanelCount').textContent = noteList.length;
+  markNoteLines();
+}
+
+function addNote() {
+  if (selectedLines.length === 0) { alert('请先选中代码行'); return; }
+  if (noteList.length >= MAX_NOTES) { alert(`最多 ${MAX_NOTES} 条笔记`); return; }
+  const s = Math.min(...selectedLines), e = Math.max(...selectedLines);
+  document.getElementById('noteLineRange').textContent = `· L${s}-L${e}`;
+  document.getElementById('noteLabel').value = '';
+  document.getElementById('noteContent').value = '';
+  document.getElementById('noteCharCount').textContent = '0/500';
+  document.getElementById('noteModal').classList.add('show');
+  document.getElementById('noteContent').oninput = function() {
+    document.getElementById('noteCharCount').textContent = this.value.length+'/500';
+  };
+}
+
+function closeNoteModal() {
+  document.getElementById('noteModal').classList.remove('show');
+}
+
+function saveNoteFromModal() {
+  const label = document.getElementById('noteLabel').value.trim();
+  const content = document.getElementById('noteContent').value.trim();
+  if (!content) { alert('请输入笔记内容'); return; }
+  const s = Math.min(...selectedLines), e = Math.max(...selectedLines);
+  const lbl = label.substring(0, 20) || `L${s}-L${e}`;
+  const ct = content.substring(0, MAX_NOTE_LEN);
+  const ctx = FULL_CODE.slice(Math.max(0,s-3), Math.min(FULL_CODE.length,e+3)).join('\n');
+
+  noteList.push({
+    id: Date.now(), start: s, end: e, label: lbl, content: ct, code: ctx,
+    date: new Date().toLocaleString()
+  });
+  saveNotes();
+  renderExplain();
+  closeNoteModal();
+}
+
+function deleteNote(id) {
+  noteList = noteList.filter(n => n.id !== id);
+  saveNotes();
+  renderNoteList();
+  renderExplain();
+}
+
+function markNoteLines() {
+  // 清除旧标记
+  document.querySelectorAll('.code-line.has-note').forEach(el => el.classList.remove('has-note'));
+  document.querySelectorAll('.note-marker').forEach(el => el.remove());
+  // 加新标记
+  noteList.forEach(n => {
+    const el = document.getElementById('L'+n.start);
+    if (el) {
+      el.classList.add('has-note');
+      const marker = document.createElement('span');
+      marker.className = 'note-marker';
+      marker.title = n.label;
+      marker.textContent = '📝';
+      marker.onclick = (e) => { e.stopPropagation(); jumpToNote(n.id); };
+      el.querySelector('.cd').appendChild(marker);
+    }
+  });
+}
+
+function toggleNoteDetail(idx) {
+  const el = document.getElementById('ncDetail'+idx);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+function jumpToNote(id) {
+  const n = noteList.find(x => x.id === id);
+  if (!n) return;
+  const el = document.getElementById('L'+n.start);
+  if (el) { el.scrollIntoView({behavior:'smooth',block:'center'}); el.classList.add('highlight'); setTimeout(()=>el.classList.remove('highlight'),1500); }
+  toggleNotesPanel();
+}
+
+function toggleNotesPanel() {
+  document.getElementById('notesPanel').classList.toggle('show');
+  renderNoteList();
+}
+
+function renderNoteList() {
+  const q = (document.getElementById('noteSearch')?.value || '').toLowerCase();
+  const list = document.getElementById('noteList');
+  const filtered = noteList.filter(n =>
+    !q || n.label.toLowerCase().includes(q) || n.content.toLowerCase().includes(q)
+  );
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="empty-notes">'+(q?'🔍 无匹配笔记':'📝 暂无笔记<br><small>选中代码行后点 "+ 记笔记" 即可添加</small>')+'</div>';
+    return;
+  }
+  list.innerHTML = filtered.map((n, i) => `
+    <div class="note-card">
+      <div class="nc-header" onclick="jumpToLine(${n.start});toggleNoteDetail(${i})" style="cursor:pointer">
+        <span class="nc-label">📝 ${escapeHtml(n.label)}</span>
+        <span class="nc-lines">L${n.start}-L${n.end}</span>
+      </div>
+      <div class="nc-detail" id="ncDetail${i}" style="display:none">
+        ${n.code ? `<div class="nc-code">${escapeHtml(n.code)}</div>` : ''}
+        <div class="nc-content">${escapeHtml(n.content)}</div>
+        <div class="nc-footer">
+          <span>${n.date}</span>
+          <span class="nc-del" onclick="event.stopPropagation();deleteNote(${n.id})">🗑 删除</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+
+function addNoteAtLine(start, end) {
+  selectedLines = [start];
+  if (start !== end) selectedLines = Array.from({length:end-start+1},(_,i)=>start+i);
+  addNote();
+}
+
+// ── 初始化 ──
+try {
+  loadNotes();
+  renderCode();
+  renderExplain();
+  markNoteLines();
+  document.getElementById('noteCount').textContent = noteList.length;
+  document.getElementById('notePanelCount').textContent = noteList.length;
+} catch(e) {
+  document.getElementById('explainPane').innerHTML = '<div class=\"empty\" style=\"color:#ef4444\">JS错误: '+e.message+'<br><small>行号: L'+e.lineNumber+'</small></div>';
+}
+</script>
+
+</body>
+</html>
