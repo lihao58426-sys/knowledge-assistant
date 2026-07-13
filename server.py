@@ -75,9 +75,10 @@ async def reader_page(request: Request):
         fname = _os.path.basename(filepath)
 
         # 查预生成讲解
+        parent = _os.path.basename(_os.path.dirname(filepath))
         explain_path = _os.path.join(
             _os.path.dirname(_os.path.abspath(__file__)),
-            ".explanations", f"{fname}.json"
+            ".explanations", f"{parent}_{fname}.json"
         )
         if _os.path.exists(explain_path):
             with open(explain_path, "r", encoding="utf-8") as f:

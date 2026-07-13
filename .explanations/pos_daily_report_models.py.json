@@ -1,0 +1,77 @@
+{
+  "tech_stack": [
+    "dataclasses"
+  ],
+  "outline": [
+    {
+      "title": "导入与配置 (L1-L16)",
+      "line": 1
+    },
+    {
+      "title": "RevenueItem 数据类 (L19-L23)",
+      "line": 19
+    },
+    {
+      "title": "DailyReport 数据类 (L26-L40)",
+      "line": 26
+    },
+    {
+      "title": "from_crawler_dict 工厂方法 (L42-L57)",
+      "line": 42
+    },
+    {
+      "title": "revenue_items 属性 (L59-L68)",
+      "line": 59
+    },
+    {
+      "title": "StoreInfo 数据类 (L71-L77)",
+      "line": 71
+    }
+  ],
+  "functions": [
+    {
+      "name": "from_crawler_dict",
+      "line": 42,
+      "summary": "从爬虫返回的 dict 构造 DailyReport",
+      "detail": "将中文 key 的 dict 转换为 DailyReport 实例，处理缺失值和类型转换，保留原始文本用于调试。"
+    },
+    {
+      "name": "revenue_items",
+      "line": 59,
+      "summary": "返回金额大于0的收入明细列表",
+      "detail": "将 DailyReport 中的收入字段组合成 RevenueItem 列表，供后续报表拼接使用。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 6,
+      "end": 10,
+      "text": "解释为什么使用 dataclass 替代 dict：字段名是属性，编辑器自动补全，类型标注清晰，避免拼写错误。"
+    },
+    {
+      "start": 19,
+      "end": 23,
+      "text": "定义 RevenueItem 数据类，包含 name 和 amount 两个字段，用于表示单条收入明细。"
+    },
+    {
+      "start": 26,
+      "end": 40,
+      "text": "定义 DailyReport 数据类，包含多个收入字段和原始文本字段，替代爬虫返回的 dict。"
+    },
+    {
+      "start": 42,
+      "end": 57,
+      "text": "定义 from_crawler_dict 类方法，将爬虫返回的中文 key dict 转换为 DailyReport 实例，处理缺失值和类型转换。"
+    },
+    {
+      "start": 59,
+      "end": 68,
+      "text": "定义 revenue_items 属性，将 DailyReport 中的收入字段组合成 RevenueItem 列表，过滤掉金额为0的项。"
+    },
+    {
+      "start": 71,
+      "end": 77,
+      "text": "定义 StoreInfo 数据类，包含门店ID、名称和银豹账号，为多店支持做准备。"
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "tech_stack": [
+    "logging",
+    "sys",
+    "datetime",
+    "config",
+    "crawler",
+    "models",
+    "database",
+    "report",
+    "pusher"
+  ],
+  "outline": [
+    {
+      "title": "导入与配置 (L1-L41)",
+      "line": 1
+    },
+    {
+      "title": "辅助函数 _print_separator (L44-L51)",
+      "line": 44
+    },
+    {
+      "title": "主流程 main (L54-L145)",
+      "line": 54
+    },
+    {
+      "title": "入口 if __name__ (L148-L149)",
+      "line": 148
+    },
+    {
+      "title": "定时任务注释 (L152-L217)",
+      "line": 152
+    }
+  ],
+  "functions": [
+    {
+      "name": "_print_separator",
+      "line": 44,
+      "summary": "打印分隔线，美化控制台输出",
+      "detail": "接受可选标题，有标题时打印带标题的分隔线，无标题时仅打印横线。用于在 dry-run 模式下预览日报内容时增加可读性。"
+    },
+    {
+      "name": "main",
+      "line": 54,
+      "summary": "日报推送主流程，支持多店循环处理",
+      "detail": "解析命令行参数判断 dry-run 模式；加载配置后遍历每家门店，依次爬取数据、构建 DailyReport 对象、存入 SQLite 数据库；最后根据门店数量拼接 Markdown 日报，通过企微机器人推送或打印预览。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 57,
+      "end": 57,
+      "text": "检查命令行参数是否包含 --dry-run，决定是否进入演习模式。"
+    },
+    {
+      "start": 69,
+      "end": 70,
+      "text": "加载 YAML 配置，获取门店列表；若配置缺失则使用默认单店配置。"
+    },
+    {
+      "start": 81,
+      "end": 82,
+      "text": "为每家门店创建爬虫实例并执行抓取，返回原始数据字典。"
+    },
+    {
+      "start": 88,
+      "end": 88,
+      "text": "将爬虫返回的字典转换为 DailyReport 数据类对象，便于后续处理。"
+    },
+    {
+      "start": 91,
+      "end": 97,
+      "text": "打开 SQLite 数据库，插入日报记录及商品排名，并打印历史汇总信息。"
+    },
+    {
+      "start": 106,
+      "end": 115,
+      "text": "根据门店数量决定日报格式：单店直接构建，多店则用二级标题分隔后拼接。"
+    },
+    {
+      "start": 121,
+      "end": 124,
+      "text": "dry-run 模式下打印日报内容预览，不实际推送。"
+    },
+    {
+      "start": 126,
+      "end": 137,
+      "text": "非演习模式且推送方式为 wework_bot 时，获取 webhook URL，创建机器人实例并发送 Markdown 消息，失败则退出。"
+    },
+    {
+      "start": 148,
+      "end": 149,
+      "text": "脚本入口：直接调用 main 函数启动流程。"
+    }
+  ]
+}

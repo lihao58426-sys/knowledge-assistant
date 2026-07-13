@@ -1,0 +1,53 @@
+{
+  "tech_stack": [],
+  "outline": [
+    {
+      "title": "模块文档 (L1-L11)",
+      "line": 1
+    },
+    {
+      "title": "AI生成异常 (L14-L20)",
+      "line": 14
+    },
+    {
+      "title": "语音合成异常 (L23-L29)",
+      "line": 23
+    },
+    {
+      "title": "视频渲染异常 (L32-L38)",
+      "line": 32
+    },
+    {
+      "title": "素材异常 (L41-L47)",
+      "line": 41
+    }
+  ],
+  "functions": [],
+  "lines": [
+    {
+      "start": 1,
+      "end": 11,
+      "text": "模块文档说明自定义异常类的设计目的：不同失败类型对应不同恢复策略，如AI失败可降级、渲染失败可跳过、TTS失败可用静音替代。"
+    },
+    {
+      "start": 14,
+      "end": 20,
+      "text": "定义AIGenerationError异常，继承Exception，用于AI生成失败场景，处理方式为降级到默认脚本。"
+    },
+    {
+      "start": 23,
+      "end": 29,
+      "text": "定义TTSError异常，用于语音合成失败，处理方式为用静音替代该镜头。"
+    },
+    {
+      "start": 32,
+      "end": 38,
+      "text": "定义RenderError异常，用于视频渲染失败，处理方式为跳过该镜头并记录日志。"
+    },
+    {
+      "start": 41,
+      "end": 47,
+      "text": "定义MaterialError异常，用于素材问题，处理方式为终止生成并提示用户。"
+    }
+  ]
+}

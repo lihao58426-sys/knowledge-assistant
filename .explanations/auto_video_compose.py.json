@@ -1,0 +1,79 @@
+{
+  "tech_stack": [
+    "logging",
+    "os",
+    "shutil",
+    "config",
+    "scenes"
+  ],
+  "outline": [
+    {
+      "title": "导入与配置 (L1-L22)",
+      "line": 1
+    },
+    {
+      "title": "compose_video 函数定义 (L25-L42)",
+      "line": 25
+    },
+    {
+      "title": "检查分镜信息 (L43-L46)",
+      "line": 43
+    },
+    {
+      "title": "逐镜头生成 (L48-L58)",
+      "line": 48
+    },
+    {
+      "title": "拼接所有镜头 (L60-L73)",
+      "line": 60
+    },
+    {
+      "title": "叠加背景音乐 (L75-L91)",
+      "line": 75
+    },
+    {
+      "title": "无 BGM 直接复制 (L93-L95)",
+      "line": 93
+    }
+  ],
+  "functions": [
+    {
+      "name": "compose_video",
+      "line": 25,
+      "summary": "拼接所有镜头并可选叠加BGM，输出最终视频",
+      "detail": "该函数是视频生成的最后一步。它从script中获取分镜列表，调用build_scene生成每个镜头文件，然后使用ffmpeg concat拼接所有镜头，最后检查是否存在bgm.mp3，若有则叠加背景音乐并输出，否则直接复制合并后的文件。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 43,
+      "end": 46,
+      "text": "检查script中是否包含scenes列表，若无则记录错误并返回None，确保后续操作有数据基础。"
+    },
+    {
+      "start": 50,
+      "end": 55,
+      "text": "使用列表推导式遍历所有分镜，调用build_scene生成每个镜头文件，过滤掉生成失败的情况，若全部失败则返回None。"
+    },
+    {
+      "start": 62,
+      "end": 65,
+      "text": "创建concat_list.txt文件，写入所有镜头文件的路径，供ffmpeg拼接使用。"
+    },
+    {
+      "start": 68,
+      "end": 73,
+      "text": "调用run_ffmpeg执行concat拼接命令，将多个镜头合并为_merged.mp4，若失败返回None。"
+    },
+    {
+      "start": 76,
+      "end": 91,
+      "text": "检查bgm.mp3是否存在，若存在则使用ffmpeg的filter_complex叠加背景音乐，调整音量并混合音频，成功则返回output_path，失败则记录警告。"
+    },
+    {
+      "start": 93,
+      "end": 95,
+      "text": "若没有BGM或BGM叠加失败，直接复制_merged.mp4到output_path，确保至少输出无BGM版本。"
+    }
+  ]
+}

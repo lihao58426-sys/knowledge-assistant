@@ -1,0 +1,237 @@
+{
+  "tech_stack": [
+    "playwright",
+    "json",
+    "os",
+    "random",
+    "re",
+    "time",
+    "logging"
+  ],
+  "outline": [
+    {
+      "title": "导入与配置 (L1-L16)",
+      "line": 1
+    },
+    {
+      "title": "类定义与初始化 (L19-L38)",
+      "line": 19
+    },
+    {
+      "title": "辅助方法：模拟人类操作 (L40-L61)",
+      "line": 40
+    },
+    {
+      "title": "主流程：run() (L63-L227)",
+      "line": 63
+    },
+    {
+      "title": "登录逻辑 (L229-L314)",
+      "line": 229
+    },
+    {
+      "title": "关闭公告弹窗 (L316-L341)",
+      "line": 316
+    },
+    {
+      "title": "导航与数据提取 (L343-L421)",
+      "line": 343
+    },
+    {
+      "title": "解析商品排名 (L423-L498)",
+      "line": 423
+    },
+    {
+      "title": "时间跨度提取 (L500-L515)",
+      "line": 500
+    },
+    {
+      "title": "已废弃方法 (L517-L635)",
+      "line": 517
+    }
+  ],
+  "functions": [
+    {
+      "name": "__init__",
+      "line": 24,
+      "summary": "初始化爬虫实例，配置账号、密码、延迟等参数",
+      "detail": "从config字典和store字典中读取配置，设置账号密码环境变量名、超时时间、Cookie路径和模拟人类操作的延迟范围。"
+    },
+    {
+      "name": "_pause",
+      "line": 40,
+      "summary": "模拟人类操作后的随机停顿",
+      "detail": "在每次操作后随机等待1-3秒，使操作节奏更自然，避免被反爬机制识别。"
+    },
+    {
+      "name": "_human_move",
+      "line": 51,
+      "summary": "模拟人类鼠标移动轨迹",
+      "detail": "将鼠标移动分解为10-25步，并加入随机抖动，模拟真实鼠标的弧线轨迹，防止被检测为自动化操作。"
+    },
+    {
+      "name": "run",
+      "line": 63,
+      "summary": "执行完整的数据抓取流程",
+      "detail": "启动浏览器，登录，关闭弹窗，抓取首页营业实收，滚动加载商品消费单数排名，进入营业概况明细页提取储值卡充值等数据，返回结果字典。"
+    },
+    {
+      "name": "_login",
+      "line": 229,
+      "summary": "登录银豹云后台",
+      "detail": "先尝试加载Cookie实现免登录，失败则填写账号密码登录，支持多种选择器定位输入框和按钮，登录成功后保存Cookie。"
+    },
+    {
+      "name": "_close_announcement",
+      "line": 316,
+      "summary": "关闭登录后可能出现的公告弹窗",
+      "detail": "等待弹窗加载后，尝试多种选择器定位关闭按钮并点击，确保不影响后续操作。"
+    },
+    {
+      "name": "_click_left_nav",
+      "line": 343,
+      "summary": "按顺序点击左侧导航菜单项",
+      "detail": "支持多种选择器匹配菜单项，依次点击传入的菜单文本，每次点击后等待1.5秒。"
+    },
+    {
+      "name": "_extract_value_after_label",
+      "line": 359,
+      "summary": "提取标签旁边的数值",
+      "detail": "通过文本定位标签，获取父元素文本，用正则提取第一个数字。"
+    },
+    {
+      "name": "_extract_table_text",
+      "line": 374,
+      "summary": "提取页面表格文本",
+      "detail": "尝试多种选择器获取表格或区域文本，取内容最长的作为结果，兜底抓取整个页面文本。"
+    },
+    {
+      "name": "_extract_value_near_label",
+      "line": 408,
+      "summary": "从文本中提取标签后的金额",
+      "detail": "在文本中定位标签，截取后续80字符，用正则匹配带符号、货币符号和千分位的金额。"
+    },
+    {
+      "name": "_parse_product_ranking_from_page",
+      "line": 423,
+      "summary": "从页面提取商品消费单数排名",
+      "detail": "定位商品消费单数排名卡片，确认销量标签激活，遍历商品条目提取名称和数量。"
+    },
+    {
+      "name": "_parse_product_ranking",
+      "line": 480,
+      "summary": "旧版正则方式解析商品排名文本",
+      "detail": "使用正则匹配商品名和数量，保留兼容旧格式。"
+    },
+    {
+      "name": "_extract_time_range",
+      "line": 500,
+      "summary": "提取页面右上角的时间跨度",
+      "detail": "通过选择器或页面文本正则匹配时间范围字符串。"
+    },
+    {
+      "name": "_scrape_overview",
+      "line": 518,
+      "summary": "已废弃的概览页数据抓取方法",
+      "detail": "原用于抓取营业实收和进入营业概况明细页，逻辑已迁移到run()中。"
+    },
+    {
+      "name": "_scrape_product_sales",
+      "line": 600,
+      "summary": "已废弃的商品销售数据抓取方法",
+      "detail": "原用于滚动抓取商品消费单数排名，逻辑已迁移到run()中。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 24,
+      "end": 38,
+      "text": "构造函数从config和store中读取配置，包括账号密码环境变量、超时时间、Cookie路径和模拟人类操作的延迟范围。"
+    },
+    {
+      "start": 40,
+      "end": 49,
+      "text": "_pause方法模拟人类操作后的随机停顿，延迟范围由min_delay和max_delay控制，使操作节奏自然。"
+    },
+    {
+      "start": 51,
+      "end": 61,
+      "text": "_human_move方法将鼠标移动分解为10-25步并加入随机抖动，模拟真实鼠标轨迹，防止被反爬识别。"
+    },
+    {
+      "start": 63,
+      "end": 227,
+      "text": "run方法是主流程，依次执行登录、关闭弹窗、抓取首页营业实收、滚动加载商品排名、进入营业概况明细页提取数据。"
+    },
+    {
+      "start": 68,
+      "end": 87,
+      "text": "启动Chromium浏览器，配置无头模式、禁用自动化标记、设置视口和UA伪装，创建浏览器上下文。"
+    },
+    {
+      "start": 92,
+      "end": 95,
+      "text": "调用_login方法登录，若失败则记录错误并返回None。"
+    },
+    {
+      "start": 97,
+      "end": 100,
+      "text": "登录后暂停等待弹窗加载，调用_close_announcement关闭公告弹窗。"
+    },
+    {
+      "start": 102,
+      "end": 112,
+      "text": "在首页提取营业实收数值，通过_extract_value_after_label方法获取。"
+    },
+    {
+      "start": 114,
+      "end": 158,
+      "text": "向下滚动页面查找商品消费单数排名区域，优先用_parse_product_ranking_from_page提取结构化数据，失败则保存原始文本。"
+    },
+    {
+      "start": 160,
+      "end": 164,
+      "text": "向上滚动回到页面顶部，为后续导航做准备。"
+    },
+    {
+      "start": 166,
+      "end": 174,
+      "text": "直接导航到营业概况明细页URL，利用已登录的Cookie，无需重新认证。"
+    },
+    {
+      "start": 176,
+      "end": 215,
+      "text": "在营业概况明细页提取时间跨度和目标行数据（储值卡充值、次卡销售、会员付费升级的现金支付列）。"
+    },
+    {
+      "start": 229,
+      "end": 314,
+      "text": "_login方法先尝试加载Cookie免登录，失败则填写账号密码登录，支持多种选择器，登录成功后保存Cookie。"
+    },
+    {
+      "start": 316,
+      "end": 341,
+      "text": "_close_announcement方法尝试多种选择器定位关闭按钮并点击，确保弹窗不影响后续操作。"
+    },
+    {
+      "start": 359,
+      "end": 372,
+      "text": "_extract_value_after_label通过文本定位标签，获取父元素文本，用正则提取第一个数字。"
+    },
+    {
+      "start": 408,
+      "end": 421,
+      "text": "_extract_value_near_label在文本中定位标签，截取后续80字符，用正则匹配金额。"
+    },
+    {
+      "start": 423,
+      "end": 478,
+      "text": "_parse_product_ranking_from_page定位商品消费单数排名卡片，确认销量标签激活，遍历商品条目提取名称和数量。"
+    },
+    {
+      "start": 500,
+      "end": 515,
+      "text": "_extract_time_range通过选择器或页面文本正则匹配时间范围字符串。"
+    }
+  ]
+}

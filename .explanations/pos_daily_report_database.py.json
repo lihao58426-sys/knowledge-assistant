@@ -1,0 +1,180 @@
+{
+  "tech_stack": [
+    "sqlite3",
+    "logging",
+    "datetime"
+  ],
+  "outline": [
+    {
+      "title": "导入与配置 (L1-L28)",
+      "line": 1
+    },
+    {
+      "title": "类定义与初始化 (L31-L42)",
+      "line": 31
+    },
+    {
+      "title": "建表 (L44-L79)",
+      "line": 44
+    },
+    {
+      "title": "写入 (L81-L116)",
+      "line": 81
+    },
+    {
+      "title": "查询：历史 (L118-L141)",
+      "line": 118
+    },
+    {
+      "title": "查询：趋势 (L143-L161)",
+      "line": 143
+    },
+    {
+      "title": "查询：环比 (L163-L223)",
+      "line": 163
+    },
+    {
+      "title": "查询：汇总 (L225-L244)",
+      "line": 225
+    },
+    {
+      "title": "商品排名 (L246-L271)",
+      "line": 246
+    },
+    {
+      "title": "收尾与上下文管理 (L273-L284)",
+      "line": 273
+    }
+  ],
+  "functions": [
+    {
+      "name": "__init__",
+      "line": 34,
+      "summary": "初始化数据库连接并自动建表",
+      "detail": "接收数据库路径参数，创建连接并设置行工厂为sqlite3.Row，然后调用_init_table方法确保表存在。"
+    },
+    {
+      "name": "_init_table",
+      "line": 45,
+      "summary": "创建日报表和商品排名表（如果不存在）",
+      "detail": "执行两条CREATE TABLE IF NOT EXISTS语句，分别创建daily_reports和product_rankings表，并提交事务。"
+    },
+    {
+      "name": "insert",
+      "line": 82,
+      "summary": "将一条日报数据插入数据库",
+      "detail": "接收DailyReport对象和可选日期、门店ID，构建INSERT语句并执行，返回新插入行的ID。"
+    },
+    {
+      "name": "get_history",
+      "line": 119,
+      "summary": "查询最近N天的日报记录",
+      "detail": "根据days参数计算起始日期，支持按门店筛选，返回按日期倒序的字典列表。"
+    },
+    {
+      "name": "get_trend",
+      "line": 144,
+      "summary": "查询最近N天的营收趋势（按日期升序）",
+      "detail": "与get_history不同，此方法按日期升序排列，便于图表展示，返回包含date和revenue的字典列表。"
+    },
+    {
+      "name": "get_comparison",
+      "line": 164,
+      "summary": "计算本月与上月的营收环比",
+      "detail": "自动计算本月和上月同期的营收总额、天数及环比涨幅百分比，返回包含total、days和change_pct的字典。"
+    },
+    {
+      "name": "get_summary",
+      "line": 226,
+      "summary": "获取整体统计摘要",
+      "detail": "执行聚合查询，返回总天数、总营收和日均营收。"
+    },
+    {
+      "name": "insert_product_rankings",
+      "line": 247,
+      "summary": "保存商品排名数据",
+      "detail": "遍历产品列表，逐条插入product_rankings表，并提交事务。"
+    },
+    {
+      "name": "get_product_rankings",
+      "line": 258,
+      "summary": "查询某天的商品排名，默认查最近一天",
+      "detail": "如果提供日期则按日期查询，否则查询最新日期的排名，返回按rank排序的字典列表。"
+    },
+    {
+      "name": "close",
+      "line": 274,
+      "summary": "关闭数据库连接",
+      "detail": "调用conn.close()释放资源。"
+    },
+    {
+      "name": "__enter__",
+      "line": 278,
+      "summary": "上下文管理器入口",
+      "detail": "返回self以支持with语句。"
+    },
+    {
+      "name": "__exit__",
+      "line": 282,
+      "summary": "上下文管理器出口，自动关闭连接",
+      "detail": "调用close方法清理资源。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 34,
+      "end": 42,
+      "text": "初始化方法：连接数据库，设置row_factory为sqlite3.Row以便按列名访问，然后调用_init_table建表。"
+    },
+    {
+      "start": 50,
+      "end": 64,
+      "text": "创建daily_reports表，包含门店、日期、营收等字段，使用IF NOT EXISTS避免重复创建。"
+    },
+    {
+      "start": 66,
+      "end": 77,
+      "text": "创建product_rankings表，通过外键关联日报表，存储商品排名信息。"
+    },
+    {
+      "start": 93,
+      "end": 116,
+      "text": "insert方法：组装INSERT语句，使用参数化查询防止SQL注入，提交后返回新行ID。"
+    },
+    {
+      "start": 129,
+      "end": 141,
+      "text": "get_history方法：根据门店ID可选条件，查询最近days天的记录，按日期倒序返回。"
+    },
+    {
+      "start": 152,
+      "end": 161,
+      "text": "get_trend方法：按日期升序查询营收，适合图表展示。"
+    },
+    {
+      "start": 179,
+      "end": 223,
+      "text": "get_comparison方法：计算本月和上月同期的营收总额、天数及环比变化百分比，处理跨年情况。"
+    },
+    {
+      "start": 232,
+      "end": 244,
+      "text": "get_summary方法：聚合查询总天数、总营收和日均营收。"
+    },
+    {
+      "start": 249,
+      "end": 256,
+      "text": "insert_product_rankings方法：遍历产品列表，逐条插入商品排名数据。"
+    },
+    {
+      "start": 260,
+      "end": 271,
+      "text": "get_product_rankings方法：按日期或最新日期查询商品排名。"
+    },
+    {
+      "start": 278,
+      "end": 284,
+      "text": "上下文管理器支持，确保with语句结束时自动关闭数据库连接。"
+    }
+  ]
+}

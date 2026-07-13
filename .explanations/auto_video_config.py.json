@@ -1,0 +1,103 @@
+{
+  "tech_stack": [
+    "logging",
+    "os",
+    "re",
+    "subprocess",
+    "imageio_ffmpeg"
+  ],
+  "outline": [
+    {
+      "title": "导入与配置 (L1-L10)",
+      "line": 1
+    },
+    {
+      "title": "导入模块 (L12-L17)",
+      "line": 12
+    },
+    {
+      "title": "ffmpeg 路径 (L21-L22)",
+      "line": 21
+    },
+    {
+      "title": "目录与字体 (L24-L28)",
+      "line": 24
+    },
+    {
+      "title": "AI API 密钥 (L30-L39)",
+      "line": 30
+    },
+    {
+      "title": "视频参数 (L41-L49)",
+      "line": 41
+    },
+    {
+      "title": "画质增强滤镜 (L51-L53)",
+      "line": 51
+    },
+    {
+      "title": "共享工具函数 (L56-L68)",
+      "line": 56
+    },
+    {
+      "title": "get_media_duration (L71-L82)",
+      "line": 71
+    }
+  ],
+  "functions": [
+    {
+      "name": "run_ffmpeg",
+      "line": 57,
+      "summary": "执行 ffmpeg 命令并检查返回值",
+      "detail": "接收命令列表和描述字符串，使用 subprocess.run 执行。若返回码非零则记录错误并返回 False，否则返回 True。所有模块统一调用此函数避免重复代码。"
+    },
+    {
+      "name": "get_media_duration",
+      "line": 71,
+      "summary": "获取媒体文件时长（秒）",
+      "detail": "通过 ffmpeg 探测文件信息，用正则从 stderr 提取 Duration 字段。将时分秒转换为总秒数返回，失败时返回 None。用于配音后自动计算镜头时长。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 6,
+      "end": 9,
+      "text": "解释 run_ffmpeg 和 get_media_duration 放在 config.py 的原因：避免循环导入，且 scenes、voice、materials 都需要它们。"
+    },
+    {
+      "start": 22,
+      "end": 22,
+      "text": "使用 imageio_ffmpeg 自动获取 ffmpeg 可执行文件路径，确保跨平台兼容。"
+    },
+    {
+      "start": 25,
+      "end": 28,
+      "text": "定义字体路径、当前目录、素材和输出文件夹，为后续文件操作提供基础路径。"
+    },
+    {
+      "start": 32,
+      "end": 39,
+      "text": "从环境变量读取 DeepSeek 和 Qwen 的 API 密钥，并配置对应的 URL 和模型名称，用于脚本生成和视觉识别。"
+    },
+    {
+      "start": 42,
+      "end": 49,
+      "text": "设置视频编码参数（帧率、CRF、预设、音频码率）、背景音乐音量、场景尾部填充、模糊强度和字幕边距。"
+    },
+    {
+      "start": 52,
+      "end": 53,
+      "text": "定义画质增强滤镜字符串：锐化和色彩调整，可直接用于 ffmpeg 滤镜链。"
+    },
+    {
+      "start": 62,
+      "end": 68,
+      "text": "run_ffmpeg 核心逻辑：执行命令，捕获输出，错误时截取最后500字符日志，返回布尔值。"
+    },
+    {
+      "start": 76,
+      "end": 81,
+      "text": "get_media_duration 核心逻辑：运行 ffmpeg -i 获取元数据，正则匹配 Duration 字段，计算总秒数。"
+    }
+  ]
+}

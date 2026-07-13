@@ -66,8 +66,10 @@ def generate(filepath: str) -> dict:
     result = json.loads(raw)
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    basename = os.path.basename(filepath)
-    out = os.path.join(OUTPUT_DIR, f"{basename}.json")
+    # 用项目名_文件名 避免同名覆盖（config.py 出现在多个项目）
+    parent = os.path.basename(os.path.dirname(filepath))
+    fname = os.path.basename(filepath)
+    out = os.path.join(OUTPUT_DIR, f"{parent}_{fname}.json")
     with open(out, "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
 

@@ -1,0 +1,82 @@
+{
+  "tech_stack": [
+    "logging",
+    "os",
+    "random",
+    "openai"
+  ],
+  "outline": [
+    {
+      "title": "导入与配置 (L1-L17)",
+      "line": 1
+    },
+    {
+      "title": "知识库定义 (L19-L53)",
+      "line": 19
+    },
+    {
+      "title": "话题选择 (L55-L77)",
+      "line": 55
+    },
+    {
+      "title": "AI 话术生成 (L80-L131)",
+      "line": 80
+    }
+  ],
+  "functions": [
+    {
+      "name": "pick_topic",
+      "line": 60,
+      "summary": "加权随机选择话题，避免短期重复",
+      "detail": "从知识库话题中过滤掉最近使用过的，按权重随机选一个。记录到最近列表，超过3个则移除最早的一个，确保话题多样性。"
+    },
+    {
+      "name": "generate_script",
+      "line": 87,
+      "summary": "调用 DeepSeek 生成直播话术，失败时降级",
+      "detail": "先调用 pick_topic 选话题，构造包含话题和知识的 prompt，调用 DeepSeek API 生成自然口播话术。如果 API 调用异常，则用知识库原文拼接简单介绍作为降级方案，保证直播不中断。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 21,
+      "end": 40,
+      "text": "定义知识库字典，每个话题对应一段事实信息，作为 AI 生成话术的基础素材。"
+    },
+    {
+      "start": 43,
+      "end": 51,
+      "text": "话题权重配置，套餐和购买方式权重最高（2.0），确保转化相关话题出现频率更高。"
+    },
+    {
+      "start": 60,
+      "end": 77,
+      "text": "pick_topic 函数：加权随机选择话题，并维护最近使用列表避免短期重复，保证直播内容多样性。"
+    },
+    {
+      "start": 82,
+      "end": 84,
+      "text": "从环境变量读取 DeepSeek API 密钥，初始化 OpenAI 客户端（兼容 DeepSeek API）。"
+    },
+    {
+      "start": 87,
+      "end": 131,
+      "text": "generate_script 函数：核心流程——选话题、构造 prompt、调用 DeepSeek 生成话术，异常时降级为知识库原文拼接，确保直播稳定性。"
+    },
+    {
+      "start": 98,
+      "end": 113,
+      "text": "构造 prompt，要求生成自然亲切的口播话术，包含倒装句、疑问句钩子，禁止叫卖式用语和具体价格，长度200-300字。"
+    },
+    {
+      "start": 115,
+      "end": 126,
+      "text": "调用 DeepSeek API 生成话术，设置 system prompt 和 user prompt，提取返回内容并返回话术和话题名。"
+    },
+    {
+      "start": 127,
+      "end": 131,
+      "text": "异常处理：任何 AI 调用失败时记录警告日志，使用降级话术（知识库原文拼接），保证直播不中断。"
+    }
+  ]
+}

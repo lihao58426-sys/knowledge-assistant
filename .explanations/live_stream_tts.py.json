@@ -1,0 +1,60 @@
+{
+  "tech_stack": [
+    "edge_tts",
+    "asyncio"
+  ],
+  "outline": [
+    {
+      "title": "模块文档 (L1-L9)",
+      "line": 1
+    },
+    {
+      "title": "导入依赖 (L11-L13)",
+      "line": 11
+    },
+    {
+      "title": "异步 TTS 函数 (L16-L19)",
+      "line": 16
+    },
+    {
+      "title": "同步包装函数 (L22-L33)",
+      "line": 22
+    }
+  ],
+  "functions": [
+    {
+      "name": "_tts",
+      "line": 16,
+      "summary": "异步调用 edge-tts 生成语音",
+      "detail": "接收文本、音色和输出路径，创建 Communicate 对象并设置语速+10%，然后异步保存为 mp3 文件。这是底层异步实现，不直接对外暴露。"
+    },
+    {
+      "name": "generate_audio",
+      "line": 22,
+      "summary": "同步包装器，供线程调用",
+      "detail": "由于 producer 线程不能直接使用 asyncio，此函数通过 asyncio.run() 调用 _tts 完成语音合成。参数包括文本、音色和输出文件路径，是模块的唯一对外接口。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 1,
+      "end": 9,
+      "text": "模块文档说明职责：将话术文字通过 edge-tts 转为 mp3 音频，并解释独立拆分的两个原因：引擎可替换、主循环无需关心实现细节。"
+    },
+    {
+      "start": 11,
+      "end": 13,
+      "text": "导入 asyncio 和 edge_tts 库，asyncio 用于异步执行，edge_tts 是微软 TTS 的 Python 封装。"
+    },
+    {
+      "start": 16,
+      "end": 19,
+      "text": "定义异步函数 _tts，创建 Communicate 对象（设置语速+10%），然后调用 save 异步保存音频文件。"
+    },
+    {
+      "start": 22,
+      "end": 33,
+      "text": "定义同步函数 generate_audio，作为对外接口。内部使用 asyncio.run() 运行异步 _tts，解决线程中无法直接使用 asyncio 的问题。"
+    }
+  ]
+}
