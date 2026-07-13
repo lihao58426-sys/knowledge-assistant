@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>导师模式</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#f1f5f9;font-size:16px}
+  .header{background:#4f46e5;color:#fff;padding:12px 20px;font-weight:700;font-size:16px;display:flex;gap:16px;align-items:center}
+  .header a{color:#c7d2fe;font-size:14px;text-decoration:none}
+  .wrap{max-width:900px;margin:0 auto;padding:20px 16px}
+  .step{background:#fff;border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .step h2{font-size:16px;margin-bottom:12px;color:#1e293b}
+  .proj-grid{display:flex;flex-wrap:wrap;gap:8px}
+  .proj-btn{padding:8px 16px;border-radius:10px;border:1.5px solid #e2e8f0;background:#fff;color:#475569;text-decoration:none;font-size:14px;font-weight:500;transition:all .15s}
+  .proj-btn:hover{background:#f1f5f9;border-color:#cbd5e1}
+  .proj-btn.active{background:#4f46e5;color:#fff;border-color:#4f46e5}
+  .file-list{max-height:400px;overflow-y:auto}
+  .file-row{display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid #f1f5f9;gap:10px}
+  .file-row:hover{background:#f8fafc}
+  .file-row .name{flex:1;font-size:14px;color:#1e293b;font-family:monospace}
+  .file-row button{background:#4f46e5;color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:13px;cursor:pointer;font-weight:500}
+  .answer{background:#fff;border-radius:14px;padding:22px;margin:16px 0;box-shadow:0 1px 3px rgba(0,0,0,.04);line-height:1.9;font-size:16px;white-space:pre-wrap}
+  .answer code{background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:14px;color:#4f46e5}
+  .answer pre{background:#1e293b;color:#e2e8f0;padding:14px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.7}
+  .code-box{background:#1e293b;color:#94a3b8;padding:16px;border-radius:10px;font-size:13px;line-height:1.7;max-height:300px;overflow-y:auto;margin-bottom:16px;font-family:monospace;white-space:pre-wrap}
+  .qa-form{display:flex;gap:10px;margin-top:16px}
+  .qa-form input{flex:1;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:15px;outline:none}
+  .qa-form input:focus{border-color:#4f46e5}
+  .qa-form button{background:#4f46e5;color:#fff;border:none;padding:12px 24px;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer}
+  .back{font-size:14px;color:#4f46e5;text-decoration:none;margin-bottom:16px;display:inline-block}
+</style>
+</head>
+<body>
+<div class="header">
+  🎓 导师模式
+  <a href="/">← 返回搜索</a>
+</div>
+
+<div class="wrap">
+
+{% if not filepath %}
+<!-- 选项目 -->
+<div class="step">
+  <h2>第一步：选一个项目</h2>
+  <div class="proj-grid">
+    {% for p in projects %}
+    <a href="/tutor?project={{ p }}" class="proj-btn {% if project==p %}active{% endif %}">{{ p }}</a>
+    {% endfor %}
+  </div>
+</div>
+
+{% if files %}
+<!-- 选文件 — 勾选框 + 批量发送 -->
+<div class="step">
+  <h2>第二步：勾选文件 → 提问 → 发给导师（{{ files|length }} 个）</h2>
+  <div style="display:flex;gap:8px;margin-bottom:12px">
+    <button onclick="selectAll(true)" style="font-size:12px;padding:4px 10px;border:1px solid #e2e8f0;border-radius:6px;background:#fff;cursor:pointer">全选</button>
+    <button onclick="selectAll(false)" style="font-size:12px;padding:4px 10px;border:1px solid #e2e8f0;border-radius:6px;background:#fff;cursor:pointer">取消</button>
+  </div>
+  <form method="post" action="/tutor/explain" id="tutorForm">
+  <div class="file-list" style="max-height:350px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:12px">
+  {% for f in files %}
+    <label class="file-row" style="cursor:pointer;display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid #f1f5f9;gap:8px">
+      <input type="checkbox" name="files" value="{{ f }}" style="width:16px;height:16px;flex-shrink:0">
+      <span class="name" style="flex:1;font-size:14px;color:#1e293b;font-family:monospace">{{ f.split('\\')[-1] if '\\' in f else f }}</span>
+      <span style="font-size:11px;color:#94a3b8">{{ f.split('\\')[-2] if '\\' in f else '' }}</span>
+    </label>
+  {% endfor %}
+  </div>
+  <div class="qa-form" style="margin-top:0">
+    <input name="question" placeholder="问一个问题，如：这些文件之间的关系是什么？" style="flex:1">
+    <button type="submit">发给导师</button>
+  </div>
+  </form>
+</div>
+<script>
+function selectAll(v) {
+  document.querySelectorAll('input[name="files"]').forEach(cb => cb.checked = v);
+}
+</script>
+{% endif %}
+
+{% endif %}
+
+{% if filepath or filepaths %}
+<a href="/tutor{% if project %}?project={{ project }}{% endif %}" class="back">← 返回文件列表</a>
+
+<div class="step">
+  {% if filepaths %}
+  <h2>📄 已选 {{ filepaths|length }} 个文件</h2>
+  <div style="font-size:13px;color:#94a3b8;margin-bottom:12px">
+    {% for fp in filepaths %}{{ fp.split('\\')[-1] }}{% if not loop.last %} &bull; {% endif %}{% endfor %}
+  </div>
+  {% else %}
+  <h2>📄 {{ filepath.split('\\')[-1] }}</h2>
+  <div style="font-size:13px;color:#94a3b8;margin-bottom:12px">{{ filepath }}</div>
+  {% endif %}
+
+  {% if code_preview %}
+  <details>
+    <summary style="cursor:pointer;font-size:14px;color:#4f46e5;margin-bottom:8px">查看发送的代码（前3000字）</summary>
+    <div class="code-box">{{ code_preview }}</div>
+  </details>
+  {% endif %}
+
+  {% if question %}
+  <div style="background:#dbeafe;padding:12px 16px;border-radius:10px;margin-bottom:16px;font-weight:600;color:#1e40af">{{ question }}</div>
+  {% endif %}
+
+  {% if answer %}
+  <div class="answer">{{ answer }}</div>
+  {% endif %}
+
+  <form class="qa-form" method="post" action="/tutor/explain">
+    {% if filepaths %}
+    {% for fp in filepaths %}<input type="hidden" name="files" value="{{ fp }}">{% endfor %}
+    {% else %}
+    <input type="hidden" name="files" value="{{ filepath }}">
+    {% endif %}
+    <input name="question" placeholder="追问..." autofocus>
+    <button type="submit">追问</button>
+  </form>
+</div>
+{% endif %}
+
+</div>
+</body>
+</html>

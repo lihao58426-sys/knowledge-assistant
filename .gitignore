@@ -1,0 +1,5 @@
+__pycache__/
+chroma_db*/
+*.pyc
+.pytest_cache/
+.model-cache/

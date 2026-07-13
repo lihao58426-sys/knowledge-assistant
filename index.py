@@ -1,0 +1,230 @@
+"""
+知识库索引构建器（多模型支持）
+==============================
+扫描 → 切片 → 自选模型向量化 → ChromaDB
+
+用法：
+  python index.py              默认中文模型，全量重建
+  python index.py --v1          英文模型
+  python index.py --incremental 增量更新（只处理变动的文件）
+"""
+
+import os
+import sys
+import hashlib
+import json
+import chromadb
+from chromadb.api.types import EmbeddingFunction, Embeddings
+from sentence_transformers import SentenceTransformer
+
+# ── 配置 ──
+SCAN_DIRS = [
+    r"E:\Trae CN\AI-Kart-Live\TO DO",
+    r"E:\Trae CN\AI-Kart-Live\pos_daily_report",
+    r"E:\Trae CN\AI-Kart-Live\rfm_report",
+    r"E:\Trae CN\AI-Kart-Live\auto_video",
+    r"E:\Trae CN\AI-Kart-Live\live_stream",
+    r"E:\Trae CN\AI-Kart-Live\内网培训系统demo",
+]
+
+CHUNK_SIZE = 800
+CHUNK_OVERLAP = 100
+
+# ── 模型注册表（加新模型只需加一行）──
+MODELS = {
+    "v1": {
+        "name": "all-MiniLM-L6-v2",
+        "source": "sentence-transformers/all-MiniLM-L6-v2",
+        "lang": "英文",
+        "chroma_dir": "./chroma_db",
+        "collection": "knowledge_base_v1",
+    },
+    "v2": {
+        "name": "text2vec-base-chinese",
+        "source": "shibing624/text2vec-base-chinese",
+        "lang": "中文",
+        "chroma_dir": "./chroma_db",
+        "collection": "knowledge_base_v2",
+    },
+}
+
+FINGERPRINT_FILE = "./.index_fingerprint.json"  # 记录每个文件的修改时间和哈希
+
+
+def _file_fingerprint(path: str) -> str:
+    """计算文件的 md5 + 修改时间"""
+    stat = os.stat(path)
+    return f"{stat.st_mtime}-{stat.st_size}"
+
+
+def _load_fingerprints() -> dict:
+    """加载上次索引时的文件指纹"""
+    if os.path.exists(FINGERPRINT_FILE):
+        with open(FINGERPRINT_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+
+def _save_fingerprints(fingerprints: dict):
+    """保存当前文件指纹"""
+    with open(FINGERPRINT_FILE, "w", encoding="utf-8") as f:
+        json.dump(fingerprints, f, indent=2, ensure_ascii=False)
+
+
+SKIP_DIRS = ["__pycache__", ".git", ".pytest_cache", "node_modules",
+             "venv", "temp", "output", "materials", "build_tmp",
+             "dist", "data", "uploads", "chroma_db_v1", "chroma_db_v2"]
+
+
+class ModelEmbedding(EmbeddingFunction):
+    """通用 embedding 包装器——模型名字决定一切"""
+    def __init__(self, model_source: str):
+        print(f"  加载模型: {model_source}...")
+        self.model = SentenceTransformer(model_source)
+
+    def __call__(self, texts: list[str]) -> Embeddings:
+        return self.model.encode(texts).tolist()
+
+
+def scan_files(dirs: list) -> list:
+    files = []
+    for d in dirs:
+        if not os.path.exists(d):
+            print(f"  [跳过] {d}")
+            continue
+        for root, _, filenames in os.walk(d):
+            if any(s in root for s in SKIP_DIRS):
+                continue
+            for f in filenames:
+                if f.endswith((".py", ".md")):
+                    files.append(os.path.join(root, f))
+    return files
+
+
+def chunk_text(text: str, source: str) -> list:
+    chunks = []
+    text = text.strip()
+    if not text:
+        return chunks
+    start = 0
+    while start < len(text):
+        end = min(start + CHUNK_SIZE, len(text))
+        segment = text[start:end].strip()
+        if segment:
+            chunks.append({
+                "text": segment,
+                "source": source,
+                "position": f"{start}-{end}"
+            })
+        start += CHUNK_SIZE - CHUNK_OVERLAP
+    return chunks
+
+
+def build_index(model_key: str = "v2", incremental: bool = False):
+    """用指定模型构建索引"""
+    cfg = MODELS[model_key]
+
+    mode = "增量更新" if incremental else "全量重建"
+    print("=" * 50)
+    print(f"  知识库索引构建器（{cfg['lang']}模型 {cfg['name']}）{mode}")
+    print("=" * 50)
+
+    # [1/4] 扫描
+    print("\n[1/4] 扫描文件...")
+    files = scan_files(SCAN_DIRS)
+    print(f"  找到 {len(files)} 个文件")
+    if not files:
+        return
+
+    # 增量模式：过滤未变动的文件
+    old_fps = _load_fingerprints() if incremental else {}
+    new_fps = {}
+
+    if incremental and old_fps:
+        changed_files = []
+        skipped = 0
+        for path in files:
+            fp = _file_fingerprint(path)
+            new_fps[path] = fp
+            if old_fps.get(path) == fp:
+                skipped += 1
+            else:
+                changed_files.append(path)
+        print(f"  跳过 {skipped} 个未变动的文件，需处理 {len(changed_files)} 个")
+        files = changed_files
+
+    # [2/4] 读取 + 切段
+    print("\n[2/4] 读取并切段...")
+    all_chunks = []
+    for path in files:
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                content = f.read()
+            chunks = chunk_text(content, path)
+            all_chunks.extend(chunks)
+        except Exception as e:
+            print(f"  [跳过] {path} ({e})")
+    print(f"  共切出 {len(all_chunks)} 个片段")
+
+    # [3/4] 连接 ChromaDB + 加载模型
+    print(f"\n[3/4] 加载 {cfg['lang']}模型...")
+    client = chromadb.PersistentClient(path=cfg["chroma_dir"])
+    embed_fn = ModelEmbedding(cfg["source"])
+
+    if incremental:
+        # 增量模式：保留旧 collection，只删变动文件的旧片段（按 source 过滤）
+        try:
+            collection = client.get_collection(cfg["collection"], embedding_function=embed_fn)
+            # 删除变动文件对应的旧片段
+            for f in files:
+                try:
+                    collection.delete(where={"source": f})
+                except Exception:
+                    pass
+            print(f"  已删除 {len(files)} 个变动文件的旧索引")
+        except Exception:
+            # collection 不存在 → 创建新的
+            collection = client.create_collection(
+                name=cfg["collection"],
+                embedding_function=embed_fn,
+            )
+    else:
+        # 全量模式：删旧建新
+        try:
+            client.delete_collection(cfg["collection"])
+            print("  已删除旧索引")
+        except Exception:
+            pass
+        collection = client.create_collection(
+            name=cfg["collection"],
+            embedding_function=embed_fn,
+        )
+
+    # [4/4] 批量写入
+    print(f"\n[4/4] 写入向量（每批 100 条）...")
+    BATCH = 100
+    texts = [c["text"] for c in all_chunks]
+    metas = [{"source": c["source"], "position": c["position"]} for c in all_chunks]
+    ids = [f"{model_key}c{hashlib.md5(c['source'].encode()+str(c['position']).encode()).hexdigest()[:12]}" for c in all_chunks]
+
+    for i in range(0, len(all_chunks), BATCH):
+        j = min(i + BATCH, len(all_chunks))
+        collection.add(documents=texts[i:j], metadatas=metas[i:j], ids=ids[i:j])
+        print(f"  {j}/{len(all_chunks)}", end="\r")
+
+    # 保存文件指纹
+    if not incremental:
+        new_fps = {path: _file_fingerprint(path) for path in files}
+    _save_fingerprints(new_fps)
+
+    print(f"\n  完成！共 {len(all_chunks)} 个片段已索引")
+    print(f"  索引位置: {os.path.abspath(cfg['chroma_dir'])}")
+    print("=" * 50)
+
+
+if __name__ == "__main__":
+    inc = "--incremental" in sys.argv
+    if "--v1" in sys.argv:
+        build_index("v1", incremental=inc)
+    else:
+        build_index("v2", incremental=inc)
