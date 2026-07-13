@@ -1,0 +1,156 @@
+{
+  "tech_stack": [
+    "FastAPI",
+    "Jinja2",
+    "DeepSeek API",
+    "uvicorn"
+  ],
+  "outline": [
+    {
+      "title": "导入与配置 (L1-L16)",
+      "line": 1
+    },
+    {
+      "title": "首页路由 (L18-L38)",
+      "line": 18
+    },
+    {
+      "title": "问答API (L40-L57)",
+      "line": 40
+    },
+    {
+      "title": "阅读模式 (L59-L94)",
+      "line": 59
+    },
+    {
+      "title": "项目配置 (L99-L108)",
+      "line": 99
+    },
+    {
+      "title": "导师模式页面 (L110-L125)",
+      "line": 110
+    },
+    {
+      "title": "导师讲解API (L128-L183)",
+      "line": 128
+    },
+    {
+      "title": "逐行讲解页面 (L186-L223)",
+      "line": 186
+    },
+    {
+      "title": "逐行讲解API (L226-L262)",
+      "line": 226
+    },
+    {
+      "title": "启动入口 (L265-L271)",
+      "line": 265
+    }
+  ],
+  "functions": [
+    {
+      "name": "home",
+      "line": 19,
+      "summary": "处理首页请求，支持导师模式文件列表加载",
+      "detail": "从查询参数获取project和mode，若为导师模式则遍历项目根目录收集.py和.md文件，排除缓存和构建目录，最后渲染chat.html模板。"
+    },
+    {
+      "name": "api_ask",
+      "line": 41,
+      "summary": "处理问答请求，调用rag_engine并返回结果",
+      "detail": "从表单获取问题，调用ask函数获取回答，同时获取会话历史计算轮数，渲染chat.html模板返回。"
+    },
+    {
+      "name": "reader_page",
+      "line": 62,
+      "summary": "阅读模式页面，加载代码并检查预生成讲解",
+      "detail": "根据filepath读取文件内容，检查.explanations目录下是否存在预生成的JSON讲解文件，若存在则加载，最后渲染reader.html模板。"
+    },
+    {
+      "name": "tutor_page",
+      "line": 111,
+      "summary": "导师模式文件选择页面",
+      "detail": "根据project参数遍历项目根目录收集.py和.md文件，排除缓存和构建目录，渲染tutor.html模板。"
+    },
+    {
+      "name": "tutor_explain",
+      "line": 129,
+      "summary": "导师模式讲解API，发送代码给DeepSeek",
+      "detail": "获取用户勾选的文件列表，读取文件内容拼接成代码块，调用DeepSeek API生成讲解，返回渲染后的tutor.html模板。"
+    },
+    {
+      "name": "code_tutor_page",
+      "line": 189,
+      "summary": "逐行讲解页面，加载代码和文件列表",
+      "detail": "根据project和filepath参数加载代码文件，收集项目中的.py文件列表，渲染code-tutor.html模板。"
+    },
+    {
+      "name": "code_tutor_explain",
+      "line": 227,
+      "summary": "逐行讲解API，发送代码给DeepSeek并返回格式化的讲解",
+      "detail": "从表单获取文件路径和问题，读取文件内容，构造提示词要求DeepSeek按L行号格式输出讲解，返回JSON格式的回答。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 6,
+      "end": 8,
+      "text": "导入FastAPI、Jinja2等Web框架依赖，用于构建HTTP服务和模板渲染。"
+    },
+    {
+      "start": 10,
+      "end": 10,
+      "text": "从rag_engine模块导入ask和get_session，这是知识库问答的核心逻辑。"
+    },
+    {
+      "start": 14,
+      "end": 16,
+      "text": "初始化FastAPI应用和Jinja2模板环境，并注册urlencode过滤器用于URL编码。"
+    },
+    {
+      "start": 18,
+      "end": 38,
+      "text": "定义首页路由，支持导师模式：遍历项目目录收集.py和.md文件，排除__pycache__等目录，渲染chat.html。"
+    },
+    {
+      "start": 40,
+      "end": 57,
+      "text": "定义问答API，从表单获取问题，调用ask函数获取回答，并计算对话轮数，返回渲染结果。"
+    },
+    {
+      "start": 59,
+      "end": 94,
+      "text": "阅读模式路由，读取文件内容并检查.explanations目录下是否有预生成的讲解JSON，实现左右联动。"
+    },
+    {
+      "start": 99,
+      "end": 108,
+      "text": "定义项目根目录映射，每个项目对应一个本地路径，用于文件遍历和代码加载。"
+    },
+    {
+      "start": 110,
+      "end": 125,
+      "text": "导师模式页面路由，根据项目参数遍历文件列表，渲染文件选择界面。"
+    },
+    {
+      "start": 128,
+      "end": 183,
+      "text": "导师讲解API，支持多文件勾选，读取文件内容后调用DeepSeek API生成讲解，返回渲染结果。"
+    },
+    {
+      "start": 186,
+      "end": 223,
+      "text": "逐行讲解页面路由，加载代码文件和项目文件列表，渲染code-tutor.html模板。"
+    },
+    {
+      "start": 226,
+      "end": 262,
+      "text": "逐行讲解API，构造提示词要求DeepSeek按L行号格式输出讲解，返回JSON格式的回答。"
+    },
+    {
+      "start": 265,
+      "end": 271,
+      "text": "启动入口，使用uvicorn运行FastAPI应用，监听0.0.0.0:8002。"
+    }
+  ]
+}

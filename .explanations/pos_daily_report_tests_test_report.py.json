@@ -1,0 +1,101 @@
+{
+  "tech_stack": [
+    "sys",
+    "models",
+    "report"
+  ],
+  "outline": [
+    {
+      "title": "导入与配置 (L1-L10)",
+      "line": 1
+    },
+    {
+      "title": "测试函数定义 (L12-L48)",
+      "line": 12
+    }
+  ],
+  "functions": [
+    {
+      "name": "test_build_markdown_basic",
+      "line": 12,
+      "summary": "测试最简日报构建",
+      "detail": "创建仅含营业额的DailyReport对象，调用build_markdown_report生成Markdown，断言包含营业额、标题和收入标签。"
+    },
+    {
+      "name": "test_build_markdown_with_income",
+      "line": 20,
+      "summary": "测试含关键收入的日报",
+      "detail": "创建包含营业额、储值卡充值、次卡销售等收入的报告，验证Markdown中包含对应标签和数值。"
+    },
+    {
+      "name": "test_build_markdown_with_time_range",
+      "line": 30,
+      "summary": "测试含时间跨度的日报",
+      "detail": "设置time_range参数，验证Markdown中正确包含时间范围字符串。"
+    },
+    {
+      "name": "test_build_markdown_custom_date",
+      "line": 36,
+      "summary": "测试自定义日期",
+      "detail": "传入date_str参数，验证Markdown中显示自定义日期而非默认日期。"
+    },
+    {
+      "name": "test_build_markdown_zero_revenue",
+      "line": 42,
+      "summary": "测试零营业额不崩溃",
+      "detail": "创建营业额为0的报告，验证Markdown包含0且长度大于50，确保程序不崩溃。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 5,
+      "end": 6,
+      "text": "导入sys模块并添加父目录到路径，以便导入上层模块。"
+    },
+    {
+      "start": 8,
+      "end": 9,
+      "text": "从models导入DailyReport数据类，从report导入待测试的build_markdown_report函数。"
+    },
+    {
+      "start": 14,
+      "end": 15,
+      "text": "创建DailyReport实例并调用build_markdown_report，这是测试的核心操作。"
+    },
+    {
+      "start": 16,
+      "end": 18,
+      "text": "断言Markdown中包含营业额数值、标题和收入标签，验证基本功能。"
+    },
+    {
+      "start": 22,
+      "end": 24,
+      "text": "构造含多种收入字段的报告，测试复杂场景。"
+    },
+    {
+      "start": 25,
+      "end": 28,
+      "text": "断言各收入标签和数值均出现在Markdown中。"
+    },
+    {
+      "start": 32,
+      "end": 34,
+      "text": "测试时间范围参数，验证其被正确渲染。"
+    },
+    {
+      "start": 38,
+      "end": 40,
+      "text": "测试自定义日期参数，确保覆盖默认日期。"
+    },
+    {
+      "start": 44,
+      "end": 46,
+      "text": "测试零营业额边界情况，验证不崩溃且输出合理。"
+    },
+    {
+      "start": 47,
+      "end": 47,
+      "text": "断言Markdown长度大于50，确保有基本结构。"
+    }
+  ]
+}

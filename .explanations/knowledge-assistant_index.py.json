@@ -1,0 +1,120 @@
+{
+  "tech_stack": [
+    "os",
+    "sys",
+    "hashlib",
+    "json",
+    "chromadb",
+    "sentence_transformers"
+  ],
+  "outline": [
+    {
+      "title": "导入与配置 (L1-L51)",
+      "line": 1
+    },
+    {
+      "title": "辅助函数 (L54-L76)",
+      "line": 54
+    },
+    {
+      "title": "嵌入包装器 (L79-L86)",
+      "line": 79
+    },
+    {
+      "title": "文件扫描 (L89-L101)",
+      "line": 89
+    },
+    {
+      "title": "文本切片 (L104-L120)",
+      "line": 104
+    },
+    {
+      "title": "索引构建主函数 (L123-L222)",
+      "line": 123
+    },
+    {
+      "title": "入口与命令行解析 (L225-L231)",
+      "line": 225
+    }
+  ],
+  "functions": [
+    {
+      "name": "_file_fingerprint",
+      "line": 54,
+      "summary": "计算文件的MD5和修改时间组合指纹",
+      "detail": "使用os.stat获取文件的修改时间和大小，拼接成字符串作为唯一指纹，用于增量更新时判断文件是否变动。"
+    },
+    {
+      "name": "_load_fingerprints",
+      "line": 60,
+      "summary": "从JSON文件加载上次索引的文件指纹",
+      "detail": "检查指纹文件是否存在，若存在则读取并解析为字典返回，否则返回空字典。用于增量更新时对比文件变化。"
+    },
+    {
+      "name": "_save_fingerprints",
+      "line": 68,
+      "summary": "将当前文件指纹保存到JSON文件",
+      "detail": "接收指纹字典，以JSON格式写入指定文件，确保缩进和编码正确，供下次增量更新使用。"
+    },
+    {
+      "name": "scan_files",
+      "line": 89,
+      "summary": "递归扫描指定目录，收集.py和.md文件",
+      "detail": "遍历目录列表，跳过不存在的目录和SKIP_DIRS中的子目录，收集所有以.py或.md结尾的文件路径。"
+    },
+    {
+      "name": "chunk_text",
+      "line": 104,
+      "summary": "将文本按固定大小和重叠切分成片段",
+      "detail": "使用CHUNK_SIZE和CHUNK_OVERLAP参数，从文本起始位置循环切片，每个片段包含文本、来源和位置信息，返回片段列表。"
+    },
+    {
+      "name": "build_index",
+      "line": 123,
+      "summary": "主函数：根据模型键和增量标志构建或更新向量索引",
+      "detail": "加载模型配置，扫描文件，增量模式下过滤未变动文件，读取并切片文本，连接ChromaDB并加载嵌入模型，处理collection（增量删除旧片段或全量重建），批量写入向量，最后保存文件指纹。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 34,
+      "end": 49,
+      "text": "定义模型注册表，包含v1（英文）和v2（中文）两个模型，每个模型指定名称、来源、语言、ChromaDB目录和集合名，便于扩展。"
+    },
+    {
+      "start": 79,
+      "end": 86,
+      "text": "定义ModelEmbedding类，继承EmbeddingFunction，初始化时加载SentenceTransformer模型，__call__方法将文本列表编码为向量列表。"
+    },
+    {
+      "start": 89,
+      "end": 101,
+      "text": "scan_files函数遍历目录列表，使用os.walk递归搜索，跳过SKIP_DIRS中的目录，只收集.py和.md文件。"
+    },
+    {
+      "start": 104,
+      "end": 120,
+      "text": "chunk_text函数按CHUNK_SIZE和CHUNK_OVERLAP切分文本，生成包含文本、来源和位置的字典列表，用于后续向量化。"
+    },
+    {
+      "start": 123,
+      "end": 222,
+      "text": "build_index主函数：根据模型键选择配置，扫描文件，增量模式下对比指纹过滤未变动文件，读取并切片文本，连接ChromaDB，处理collection（增量删除旧片段或全量重建），批量写入向量，最后保存指纹。"
+    },
+    {
+      "start": 174,
+      "end": 201,
+      "text": "增量模式：获取现有collection，删除变动文件对应的旧片段；若collection不存在则创建。全量模式：删除旧collection并创建新collection。"
+    },
+    {
+      "start": 204,
+      "end": 213,
+      "text": "批量写入向量：每批100条，将文本、元数据和ID添加到collection中，并打印进度。"
+    },
+    {
+      "start": 225,
+      "end": 231,
+      "text": "入口：解析命令行参数，若包含--incremental则增量更新，--v1使用英文模型，否则默认使用中文模型v2。"
+    }
+  ]
+}

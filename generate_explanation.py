@@ -66,8 +66,12 @@ def generate(filepath: str) -> dict:
     result = json.loads(raw)
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    # 用项目名_文件名 避免同名覆盖（config.py 出现在多个项目）
-    parent = os.path.basename(os.path.dirname(filepath))
+    # 用项目名_文件名 避免同名覆盖
+    d = os.path.dirname(filepath)
+    parent = os.path.basename(d)
+    # 测试文件在 tests/ 子目录，往上再取一层
+    if parent == 'tests':
+        parent = os.path.basename(os.path.dirname(d)) + '_tests'
     fname = os.path.basename(filepath)
     out = os.path.join(OUTPUT_DIR, f"{parent}_{fname}.json")
     with open(out, "w", encoding="utf-8") as f:

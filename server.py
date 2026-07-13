@@ -75,7 +75,10 @@ async def reader_page(request: Request):
         fname = _os.path.basename(filepath)
 
         # 查预生成讲解
-        parent = _os.path.basename(_os.path.dirname(filepath))
+        d = _os.path.dirname(filepath)
+        parent = _os.path.basename(d)
+        if parent == 'tests':
+            parent = _os.path.basename(_os.path.dirname(d)) + '_tests'
         explain_path = _os.path.join(
             _os.path.dirname(_os.path.abspath(__file__)),
             ".explanations", f"{parent}_{fname}.json"

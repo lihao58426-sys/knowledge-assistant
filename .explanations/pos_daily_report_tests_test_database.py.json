@@ -1,0 +1,116 @@
+{
+  "tech_stack": [
+    "sqlite3",
+    "pytest"
+  ],
+  "outline": [
+    {
+      "title": "导入与配置 (L1-L12)",
+      "line": 1
+    },
+    {
+      "title": "测试类定义与初始化 (L14-L21)",
+      "line": 14
+    },
+    {
+      "title": "插入与历史查询测试 (L23-L31)",
+      "line": 23
+    },
+    {
+      "title": "趋势查询测试 (L33-L39)",
+      "line": 33
+    },
+    {
+      "title": "汇总统计测试 (L41-L45)",
+      "line": 41
+    },
+    {
+      "title": "多店数据隔离测试 (L47-L56)",
+      "line": 47
+    },
+    {
+      "title": "商品排名入库测试 (L58-L70)",
+      "line": 58
+    }
+  ],
+  "functions": [
+    {
+      "name": "setup_class",
+      "line": 18,
+      "summary": "创建内存数据库实例",
+      "detail": "在所有测试前执行，使用 :memory: 创建临时 SQLite 数据库，避免影响真实数据。将实例赋值给 cls.db 供后续测试使用。"
+    },
+    {
+      "name": "test_insert_and_get_history",
+      "line": 23,
+      "summary": "测试插入报表并查询历史",
+      "detail": "构造 DailyReport 对象，调用 insert 方法插入数据，断言返回 ID 大于0。然后调用 get_history 查询最近30天记录，验证插入的数据能被正确查询到。"
+    },
+    {
+      "name": "test_get_trend",
+      "line": 33,
+      "summary": "测试趋势查询功能",
+      "detail": "调用 get_trend 方法获取趋势数据，断言返回列表非空，并验证每条记录包含 date 和 revenue 字段，确保按日期升序返回。"
+    },
+    {
+      "name": "test_get_summary",
+      "line": 41,
+      "summary": "测试汇总统计功能",
+      "detail": "调用 get_summary 方法获取汇总数据，断言 total_days 和 total_revenue 字段值符合预期，验证统计逻辑正确。"
+    },
+    {
+      "name": "test_store_isolation",
+      "line": 47,
+      "summary": "测试多店数据隔离",
+      "detail": "先向 store_b 插入一条数据，再查询 test 店的历史记录，断言所有返回记录的 store_id 均为 test，验证不同门店数据互不干扰。"
+    },
+    {
+      "name": "test_insert_product_rankings",
+      "line": 58,
+      "summary": "测试商品排名入库与查询",
+      "detail": "构造商品排名列表，调用 insert_product_rankings 方法插入数据，再调用 get_product_rankings 查询，断言返回记录数不少于2，验证入库和查询功能正常。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 6,
+      "end": 11,
+      "text": "导入所需模块：sys 用于修改路径，os 可能用于路径操作，database 和 models 是被测试的核心模块。"
+    },
+    {
+      "start": 17,
+      "end": 21,
+      "text": "setup_class 类方法：在所有测试前创建内存数据库实例，:memory: 表示临时数据库，测试结束后自动销毁，不污染真实数据。"
+    },
+    {
+      "start": 25,
+      "end": 27,
+      "text": "构造 DailyReport 对象并插入数据库，断言返回的 ID 大于0，验证插入成功。"
+    },
+    {
+      "start": 29,
+      "end": 31,
+      "text": "调用 get_history 查询最近30天历史，断言至少有一条记录且 revenue 字段值正确，验证数据持久化与查询功能。"
+    },
+    {
+      "start": 35,
+      "end": 39,
+      "text": "调用 get_trend 获取趋势数据，断言返回列表非空且每条记录包含 date 和 revenue 字段，验证趋势查询接口。"
+    },
+    {
+      "start": 43,
+      "end": 45,
+      "text": "调用 get_summary 获取汇总统计，断言 total_days 和 total_revenue 字段值符合预期，验证统计逻辑。"
+    },
+    {
+      "start": 50,
+      "end": 56,
+      "text": "插入另一门店数据后，查询 test 店历史，断言所有返回记录的 store_id 均为 test，验证数据隔离机制。"
+    },
+    {
+      "start": 60,
+      "end": 70,
+      "text": "构造商品排名列表并调用 insert_product_rankings 插入，再调用 get_product_rankings 查询，断言返回记录数不少于2，验证商品排名功能完整。"
+    }
+  ]
+}

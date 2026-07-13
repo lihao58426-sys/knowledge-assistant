@@ -1,0 +1,159 @@
+{
+  "tech_stack": [
+    "pytest"
+  ],
+  "outline": [
+    {
+      "title": "导入与配置 (L1-L9)",
+      "line": 1
+    },
+    {
+      "title": "测试类定义 (L11-L12)",
+      "line": 11
+    },
+    {
+      "title": "正常数据测试 (L14-L29)",
+      "line": 14
+    },
+    {
+      "title": "空数据测试 (L31-L39)",
+      "line": 31
+    },
+    {
+      "title": "部分字段测试 (L41-L46)",
+      "line": 41
+    },
+    {
+      "title": "坏数字测试 (L48-L52)",
+      "line": 48
+    },
+    {
+      "title": "含商品排名测试 (L54-L63)",
+      "line": 54
+    },
+    {
+      "title": "收入明细测试 (L65-L75)",
+      "line": 65
+    }
+  ],
+  "functions": [
+    {
+      "name": "test_from_crawler_dict_normal",
+      "line": 14,
+      "summary": "测试正常数据解析",
+      "detail": "构造包含所有字段的字典，调用from_crawler_dict方法，验证返回的DailyReport对象各属性值正确。确保数字字符串转为浮点数，时间范围字符串原样保留。"
+    },
+    {
+      "name": "test_from_crawler_dict_empty",
+      "line": 31,
+      "summary": "测试空字典不崩溃",
+      "detail": "传入空字典，验证方法返回默认值：所有金额为0.0，时间范围为空字符串，商品排名为空列表。确保代码健壮性。"
+    },
+    {
+      "name": "test_from_crawler_dict_partial",
+      "line": 41,
+      "summary": "测试部分字段缺失",
+      "detail": "只提供营业实收字段，验证缺失字段使用默认值0.0。确保方法能处理不完整数据。"
+    },
+    {
+      "name": "test_from_crawler_dict_bad_number",
+      "line": 48,
+      "summary": "测试坏数字不崩溃",
+      "detail": "传入空字符串作为金额，验证方法将其解析为0.0。确保异常输入不会导致程序崩溃。"
+    },
+    {
+      "name": "test_from_crawler_dict_with_ranking",
+      "line": 54,
+      "summary": "测试含商品排名",
+      "detail": "构造包含商品消费单数排名的数据，验证排名列表被正确传入并解析，第一个商品名称为蹦床。"
+    },
+    {
+      "name": "test_revenue_items",
+      "line": 65,
+      "summary": "测试收入明细返回全部项目",
+      "detail": "创建DailyReport对象，调用revenue_items属性，验证返回4个RevenueItem，包括金额为0的项目，确保名称和金额正确。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 6,
+      "end": 6,
+      "text": "将上级目录加入系统路径，使测试文件能导入项目中的models模块。"
+    },
+    {
+      "start": 8,
+      "end": 8,
+      "text": "从models模块导入DailyReport、RevenueItem、StoreInfo三个类，为测试做准备。"
+    },
+    {
+      "start": 11,
+      "end": 11,
+      "text": "定义测试类TestDailyReport，用于组织DailyReport相关的测试用例。"
+    },
+    {
+      "start": 23,
+      "end": 23,
+      "text": "调用DailyReport的类方法from_crawler_dict，传入爬取的数据字典，返回模型实例。"
+    },
+    {
+      "start": 25,
+      "end": 29,
+      "text": "断言验证返回的report对象各属性值与预期一致，确保数据解析正确。"
+    },
+    {
+      "start": 33,
+      "end": 33,
+      "text": "传入空字典调用from_crawler_dict，测试边界情况。"
+    },
+    {
+      "start": 34,
+      "end": 39,
+      "text": "断言所有字段均为默认值，验证空数据处理逻辑。"
+    },
+    {
+      "start": 43,
+      "end": 43,
+      "text": "只提供营业实收字段，测试部分数据场景。"
+    },
+    {
+      "start": 46,
+      "end": 46,
+      "text": "断言缺失的card_recharge字段默认为0.0。"
+    },
+    {
+      "start": 50,
+      "end": 50,
+      "text": "传入空字符串作为金额，测试异常输入。"
+    },
+    {
+      "start": 52,
+      "end": 52,
+      "text": "断言空字符串被解析为0.0，验证容错能力。"
+    },
+    {
+      "start": 60,
+      "end": 61,
+      "text": "构造包含商品排名列表的数据，调用from_crawler_dict。"
+    },
+    {
+      "start": 62,
+      "end": 63,
+      "text": "断言排名列表长度和第一个元素名称正确。"
+    },
+    {
+      "start": 67,
+      "end": 69,
+      "text": "手动创建DailyReport实例，包含金额为0的项目。"
+    },
+    {
+      "start": 70,
+      "end": 70,
+      "text": "访问revenue_items属性，获取收入明细列表。"
+    },
+    {
+      "start": 71,
+      "end": 75,
+      "text": "断言列表包含4个项目，并验证第一个和最后一个项目的名称和金额。"
+    }
+  ]
+}
