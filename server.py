@@ -33,9 +33,18 @@ async def home(request: Request):
                     tutor_files.append(_os.path.join(dirpath, f))
         tutor_files.sort()
 
+    # 文档模式 — 加载 TO DO 文件夹
+    doc_files = []
+    if mode == "docs":
+        todo = r"E:\Trae CN\AI-Kart-Live\TO DO"
+        if _os.path.exists(todo):
+            for f in sorted(_os.listdir(todo)):
+                if f.endswith(".md"):
+                    doc_files.append(_os.path.join(todo, f))
+
     return HTMLResponse(jinja_env.get_template("chat.html").render(
         request=request, active_project=project, mode=mode, tutor_files=tutor_files,
-        projects=PROJECT_ROOTS.keys()))
+        doc_files=doc_files, projects=PROJECT_ROOTS.keys()))
 
 @app.post("/ask")
 async def api_ask(request: Request):

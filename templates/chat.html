@@ -52,8 +52,9 @@
     {% endfor %}
   </div>
   <div class="mode-bar">
-    <a href="/?project={{ active_project or '' }}&mode=search" class="mode-btn {% if mode!='tutor' %}active{% endif %}">🔍 搜索提问</a>
+    <a href="/?project={{ active_project or '' }}&mode=search" class="mode-btn {% if mode!='tutor' and mode!='docs' %}active{% endif %}">🔍 搜索提问</a>
     <a href="/?project={{ active_project or '' }}&mode=tutor" class="mode-btn {% if mode=='tutor' %}active{% endif %}">🎓 导师模式</a>
+    <a href="/?mode=docs" class="mode-btn {% if mode=='docs' %}active{% endif %}">📄 文档</a>
   </div>
 </div>
 
@@ -96,6 +97,24 @@
 
 {% if answer %}
 <div class="qa"><div class="q">{{ question }}</div><div class="a">{{ answer }}</div></div>
+{% endif %}
+
+{% elif mode == 'docs' %}
+<!-- ═══════════ 文档模式 ═══════════ -->
+{% if doc_files %}
+<div class="step" style="max-width:700px;margin:0 auto">
+  <h2 style="font-size:16px;color:#1e293b;margin-bottom:14px">📄 TO DO 知识文档（{{ doc_files|length }} 篇）</h2>
+  <div style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04)">
+  {% for f in doc_files %}
+    <a href="/reader?project=&file={{ f|urlencode }}" style="display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid #f1f5f9;text-decoration:none;color:#1e293b;font-size:14px">
+      <span>📝 {{ f.replace('\\','/').split('/')[-1].replace('.md','') }}</span>
+      <span style="color:#4f46e5;font-size:13px">阅读 →</span>
+    </a>
+  {% endfor %}
+  </div>
+</div>
+{% else %}
+<div class="empty">没有找到文档</div>
 {% endif %}
 
 {% else %}
