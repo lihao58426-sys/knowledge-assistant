@@ -7,6 +7,15 @@ RAG 问答引擎（多模型支持）
 """
 
 import os
+
+# ── 离线模型加载 ──
+# sentence-transformers 默认每次加载模型都会联网到 huggingface.co 检查更新。
+# 国内网络连不上，会导致每次问答卡住数分钟（连接超时后重试 5 次）。
+# 模型已缓存在本地，这里强制离线，直接读缓存。
+# 上云若需联网下载模型，可在启动前设 HF_HUB_OFFLINE=0 覆盖此默认值。
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
+os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+
 import sys
 import chromadb
 from sentence_transformers import SentenceTransformer

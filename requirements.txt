@@ -1,0 +1,16 @@
+# 个人知识库助手 — Python 依赖清单
+# 安装：pip install -r requirements.txt
+# 版本已锁定为当前验证可用的版本，避免自动升级到不兼容的新版本。
+
+# ── Web 服务 ──
+fastapi==0.139.0
+uvicorn==0.51.0
+jinja2==3.1.6
+python-multipart==0.0.32   # FastAPI 解析表单（form）必需
+
+# ── 向量检索 ──
+chromadb==1.5.9
+sentence-transformers==5.6.0   # 加载 embedding 模型（text2vec / MiniLM）
+
+# ── 调用 DeepSeek API ──
+requests==2.34.2

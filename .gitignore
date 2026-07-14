@@ -7,3 +7,5 @@ chroma_db*/
 .explanations/.*
 # 临时脚本
 _gen_batch.py
+# 运行日志
+*.log
