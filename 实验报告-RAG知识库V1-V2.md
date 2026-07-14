@@ -451,3 +451,4 @@ JS 讲解：generate_explanation.py 支持 8 种格式 ✓
 | 28 | `test.txt` / `test_v2.txt` 早期 RAG 测试输出，非测试用例 | 删除 |
 | 29 | `.chroma-cache` `.chroma-real` `.model-cache` 三个空目录 | 删除 |
 | 30 | `/tutor/explain` 路由渲染已删除的 `tutor.html`，导师模式提交即报错 | 改为渲染 `chat.html` |
+| 31 | 内网培训系统 demo 的依赖图节点点进去 404/无代码无讲解 | Windows 路径 `\t` → TAB、`\a` → BEL、`\b` → BS，被 JSON/JS 当成转义符吃掉，路径变成乱码。rfm 的 upload.html 侥幸没事因为 `\u` 后面是 `p`（`\up` 不是任何转义序列） | GRAPH_DATA 所有 48 个路径 `\` 统一换 `/`，正斜杠不会被转义且 Windows API 全兼容 |
