@@ -438,3 +438,16 @@ JS 讲解：generate_explanation.py 支持 8 种格式 ✓
 > 📌 V1→V2 核心结论：**中文模型是检索质量跃升的关键，多模型统一架构是可持续迭代的基础。**
 > 💡 最大的坑：不要假设 API 存在，不要硬编码路径到 C 盘，不要让历史代码污染当前目录。
 > 🔧 V3.3 新教训：**sessionStorage 不跨标签页，跨页面状态传递靠 URL 参数；Windows 杀进程不能只靠 pkill；先确认导航链路通畅再测功能，否则全在错误视图里白测。**
+
+---
+
+## 十五、V3.3 代码清理（2026年7月14日）
+
+| # | 问题 | 处理 |
+|:--:|------|------|
+| 25 | `server.py` 顶部 `import os`，中间又 `import os as _os`，全文只用 `_os.` | 统一用 `os.`，删掉别名行 |
+| 26 | 两个路由内各自 `import json as _json`，顶部已有 `import json` | 路由内删掉，复用顶部 json |
+| 27 | `v1-archive/` 旧版代码存档，已无引用 | 删除目录 |
+| 28 | `test.txt` / `test_v2.txt` 早期 RAG 测试输出，非测试用例 | 删除 |
+| 29 | `.chroma-cache` `.chroma-real` `.model-cache` 三个空目录 | 删除 |
+| 30 | `/tutor/explain` 路由渲染已删除的 `tutor.html`，导师模式提交即报错 | 改为渲染 `chat.html` |

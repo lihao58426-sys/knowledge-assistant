@@ -31,23 +31,23 @@ async def home(request: Request):
     tutor_files = []
     if mode == "tutor" and project and project in PROJECT_ROOTS:
         root = PROJECT_ROOTS[project]
-        for dirpath, _, filenames in _os.walk(root):
+        for dirpath, _, filenames in os.walk(root):
             if any(s in dirpath for s in ["__pycache__", ".git", "chroma_db", "build_tmp",
                                            "dist", "data", "uploads", "output", "materials", "temp"]):
                 continue
             for f in filenames:
                 if f.endswith((".py", ".md")):
-                    tutor_files.append(_os.path.join(dirpath, f))
+                    tutor_files.append(os.path.join(dirpath, f))
         tutor_files.sort()
 
     # 文档模式 — 加载 TO DO 文件夹
     doc_files = []
     if mode == "docs":
         todo = r"E:\Trae CN\AI-Kart-Live\TO DO"
-        if _os.path.exists(todo):
-            for f in sorted(_os.listdir(todo)):
+        if os.path.exists(todo):
+            for f in sorted(os.listdir(todo)):
                 if f.endswith(".md"):
-                    doc_files.append(_os.path.join(todo, f))
+                    doc_files.append(os.path.join(todo, f))
 
     return HTMLResponse(jinja_env.get_template("chat.html").render(
         request=request, active_project=project, mode=mode, tutor_files=tutor_files,
@@ -78,7 +78,6 @@ async def api_ask(request: Request):
 @app.get("/reader", response_class=HTMLResponse)
 async def reader_page(request: Request):
     """阅读模式 — 预生成讲解 + 目录跳转 + 双向联动"""
-    import json as _json
     project = request.query_params.get("project", "")
     filepath = request.query_params.get("file", "")
     code_lines = []
@@ -86,37 +85,35 @@ async def reader_page(request: Request):
     has_explain = False
     explain_json = "null"
 
-    if filepath and _os.path.exists(filepath):
+    if filepath and os.path.exists(filepath):
         with open(filepath, "r", encoding="utf-8") as f:
             code_lines = f.read().split('\n')
-        fname = _os.path.basename(filepath)
+        fname = os.path.basename(filepath)
 
         # 查预生成讲解
-        d = _os.path.dirname(filepath)
-        parent = _os.path.basename(d)
+        d = os.path.dirname(filepath)
+        parent = os.path.basename(d)
         if parent == 'tests':
-            parent = _os.path.basename(_os.path.dirname(d)) + '_tests'
-        explain_path = _os.path.join(
-            _os.path.dirname(_os.path.abspath(__file__)),
+            parent = os.path.basename(os.path.dirname(d)) + '_tests'
+        explain_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
             ".explanations", f"{parent}_{fname}.json"
         )
-        if _os.path.exists(explain_path):
+        if os.path.exists(explain_path):
             with open(explain_path, "r", encoding="utf-8") as f:
                 explain_json = f.read()
                 has_explain = True
 
     return HTMLResponse(jinja_env.get_template("reader.html").render(
         request=request, project=project, filepath=filepath, fname=fname,
-        code_json=_json.dumps(code_lines, ensure_ascii=False),
-        filepath_json=_json.dumps(filepath, ensure_ascii=False) if filepath else '""',
+        code_json=json.dumps(code_lines, ensure_ascii=False),
+        filepath_json=json.dumps(filepath, ensure_ascii=False) if filepath else '""',
         has_explain=has_explain,
         explain_json=explain_json,
     ))
 
 
 # ── 导师模式：读整个文件 → 发给 DeepSeek 讲解 ──
-
-import os as _os
 
 PROJECT_ROOTS = {
     "pos_daily_report": r"E:\Trae CN\AI-Kart-Live\pos_daily_report",
@@ -148,7 +145,7 @@ async def tutor_explain(request: Request):
     # 读所有勾选的文件
     codes = []
     for fp in filepaths:
-        if not _os.path.exists(fp):
+        if not os.path.exists(fp):
             continue
         with open(fp, "r", encoding="utf-8") as f:
             content = f.read()
@@ -163,7 +160,7 @@ async def tutor_explain(request: Request):
     # 发给 DeepSeek
     import requests as _r
     headers = {
-        "Authorization": f"Bearer {_os.getenv('DEEPSEEK_API_KEY', '')}",
+        "Authorization": f"Bearer {os.getenv('DEEPSEEK_API_KEY', '')}",
         "Content-Type": "application/json",
     }
     data = {
@@ -179,10 +176,10 @@ async def tutor_explain(request: Request):
     resp.raise_for_status()
     answer = resp.json()["choices"][0]["message"]["content"].strip()
 
-    return HTMLResponse(jinja_env.get_template("tutor.html").render(
-        request=request, project="", filepaths=filepaths, question=question,
-        answer=answer, files=[], projects=PROJECT_ROOTS.keys(),
-        code_preview=all_code[:3000] + ("..." if len(all_code) > 3000 else "")))
+    return HTMLResponse(jinja_env.get_template("chat.html").render(
+        request=request, question=question, answer=answer,
+        active_project="", mode="tutor", tutor_files=[], doc_files=[],
+        projects=PROJECT_ROOTS.keys(), arch_json=json.dumps(GRAPH_DATA, ensure_ascii=False)))
 
 
 # ── 追问 API（reader 和 notebook 共用）──
@@ -190,14 +187,14 @@ async def tutor_explain(request: Request):
 @app.post("/code-tutor/explain")
 async def code_tutor_explain(request: Request):
     """逐行讲解 API"""
-    import json as _json, requests as _r
+    import requests as _r
     form = await request.form()
     filepath = form.get("file", "")
     question = form.get("question", "").strip()
     context = form.get("context", "")
 
-    if not filepath or not _os.path.exists(filepath):
-        return HTMLResponse(_json.dumps({"error": "文件不存在"}), media_type="application/json")
+    if not filepath or not os.path.exists(filepath):
+        return HTMLResponse(json.dumps({"error": "文件不存在"}), media_type="application/json")
 
     with open(filepath, "r", encoding="utf-8") as f:
         code = f.read()
@@ -205,10 +202,10 @@ async def code_tutor_explain(request: Request):
     prompt = question
     if context:
         prompt = f"之前讲解的代码：\n{context}\n\n新问题：{question}"
-    prompt += f"\n\n完整文件 ({_os.path.basename(filepath)}):\n```python\n{code}\n```\n\n请直接按 L行号 | 讲解内容 的格式输出，每行一条。"
+    prompt += f"\n\n完整文件 ({os.path.basename(filepath)}):\n```python\n{code}\n```\n\n请直接按 L行号 | 讲解内容 的格式输出，每行一条。"
 
     headers = {
-        "Authorization": f"Bearer {_os.getenv('DEEPSEEK_API_KEY', '')}",
+        "Authorization": f"Bearer {os.getenv('DEEPSEEK_API_KEY', '')}",
         "Content-Type": "application/json",
     }
     data = {
@@ -223,7 +220,7 @@ async def code_tutor_explain(request: Request):
     resp.raise_for_status()
     answer = resp.json()["choices"][0]["message"]["content"].strip()
 
-    return HTMLResponse(_json.dumps({"answer": answer}, ensure_ascii=False), media_type="application/json")
+    return HTMLResponse(json.dumps({"answer": answer}, ensure_ascii=False), media_type="application/json")
 
 
 @app.get("/notebook", response_class=HTMLResponse)
