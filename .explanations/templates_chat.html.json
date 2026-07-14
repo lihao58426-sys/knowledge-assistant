@@ -1,0 +1,114 @@
+{
+  "tech_stack": [
+    "Jinja2",
+    "ECharts"
+  ],
+  "outline": [
+    {
+      "title": "HTML结构与样式 (L1-L39)",
+      "line": 1
+    },
+    {
+      "title": "头部与导航 (L41-L60)",
+      "line": 41
+    },
+    {
+      "title": "导师模式 (L64-L101)",
+      "line": 64
+    },
+    {
+      "title": "文档模式 (L103-L119)",
+      "line": 103
+    },
+    {
+      "title": "检索模式与图表 (L121-L208)",
+      "line": 121
+    },
+    {
+      "title": "脚本与结束 (L210-L213)",
+      "line": 210
+    }
+  ],
+  "functions": [
+    {
+      "name": "showMain",
+      "line": 148,
+      "summary": "渲染主图，展示所有项目节点",
+      "detail": "定义节点数据与链接，使用ECharts graph布局绘制总览图，点击节点跳转到showProject。"
+    },
+    {
+      "name": "showProject",
+      "line": 168,
+      "summary": "渲染单个项目的架构图",
+      "detail": "根据项目名从ARCH_DATA获取节点和链接数据，设置不同类别节点的样式，支持点击节点打开文件。"
+    },
+    {
+      "name": "selAll",
+      "line": 211,
+      "summary": "全选/取消全选文件复选框",
+      "detail": "遍历所有name为files的checkbox，根据参数设置checked状态。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 44,
+      "end": 44,
+      "text": "显示当前模式（导师/检索），使用Jinja2模板变量mode。"
+    },
+    {
+      "start": 49,
+      "end": 52,
+      "text": "项目导航栏，循环生成项目链接，高亮当前项目。"
+    },
+    {
+      "start": 55,
+      "end": 58,
+      "text": "模式切换按钮，根据mode参数高亮对应按钮。"
+    },
+    {
+      "start": 77,
+      "end": 95,
+      "text": "导师模式表单：选择文件、输入问题，提交到/tutor/explain。"
+    },
+    {
+      "start": 100,
+      "end": 100,
+      "text": "显示导师回答，使用Jinja2变量question和answer。"
+    },
+    {
+      "start": 110,
+      "end": 113,
+      "text": "文档模式：列出文档文件，链接到阅读页面。"
+    },
+    {
+      "start": 136,
+      "end": 137,
+      "text": "引入ECharts库并初始化图表实例。"
+    },
+    {
+      "start": 139,
+      "end": 146,
+      "text": "定义主图节点数据，每个项目包含名称、项目名、描述和颜色。"
+    },
+    {
+      "start": 148,
+      "end": 166,
+      "text": "showMain函数：设置graph系列，配置力导向布局，点击节点调用showProject。"
+    },
+    {
+      "start": 168,
+      "end": 192,
+      "text": "showProject函数：根据项目数据渲染子图，支持点击节点打开文件。"
+    },
+    {
+      "start": 204,
+      "end": 207,
+      "text": "检索模式提问表单，提交到/ask，支持项目参数。"
+    },
+    {
+      "start": 211,
+      "end": 211,
+      "text": "selAll函数：全选/取消全选文件复选框。"
+    }
+  ]
+}

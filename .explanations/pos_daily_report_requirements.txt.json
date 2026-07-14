@@ -1,0 +1,31 @@
+{
+  "tech_stack": [
+    "requests",
+    "playwright",
+    "pyyaml"
+  ],
+  "outline": [
+    {
+      "title": "依赖声明 (L1-L3)",
+      "line": 1
+    }
+  ],
+  "functions": [],
+  "lines": [
+    {
+      "start": 1,
+      "end": 1,
+      "text": "声明 requests 库的最低版本要求为 2.28.0，用于发送 HTTP 请求。"
+    },
+    {
+      "start": 2,
+      "end": 2,
+      "text": "声明 playwright 库的最低版本要求为 1.40.0，用于浏览器自动化操作。"
+    },
+    {
+      "start": 3,
+      "end": 3,
+      "text": "声明 pyyaml 库的最低版本要求为 6.0，用于解析 YAML 配置文件。"
+    }
+  ]
+}

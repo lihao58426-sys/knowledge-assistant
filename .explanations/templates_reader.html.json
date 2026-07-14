@@ -1,0 +1,258 @@
+{
+  "tech_stack": [
+    "无外部库"
+  ],
+  "outline": [
+    {
+      "title": "HTML结构与样式 (L1-L88)",
+      "line": 1
+    },
+    {
+      "title": "HTML主体与UI组件 (L90-L154)",
+      "line": 90
+    },
+    {
+      "title": "JavaScript初始化与数据 (L156-L164)",
+      "line": 156
+    },
+    {
+      "title": "代码渲染与交互 (L167-L197)",
+      "line": 167
+    },
+    {
+      "title": "讲解渲染与导航 (L200-L283)",
+      "line": 200
+    },
+    {
+      "title": "追问功能 (L286-L313)",
+      "line": 286
+    },
+    {
+      "title": "笔记系统核心 (L316-L398)",
+      "line": 316
+    },
+    {
+      "title": "笔记UI与搜索 (L400-L452)",
+      "line": 400
+    },
+    {
+      "title": "初始化执行 (L455-L464)",
+      "line": 455
+    }
+  ],
+  "functions": [
+    {
+      "name": "renderCode",
+      "line": 167,
+      "summary": "渲染代码行到左栏",
+      "detail": "遍历FULL_CODE数组，为每行生成带行号和内容的div，并绑定点击事件。使用esc函数转义HTML特殊字符防止XSS。"
+    },
+    {
+      "name": "esc",
+      "line": 175,
+      "summary": "HTML转义函数",
+      "detail": "将字符串中的&、<、>替换为对应的HTML实体，用于安全显示代码内容。"
+    },
+    {
+      "name": "onCodeClick",
+      "line": 177,
+      "summary": "处理代码行点击事件",
+      "detail": "支持Shift键范围选择、Ctrl键切换选择、普通点击单选。更新selectedLines数组和界面高亮，联动右侧讲解滚动。"
+    },
+    {
+      "name": "renderExplain",
+      "line": 200,
+      "summary": "渲染右侧讲解面板",
+      "detail": "根据EXPLAIN_DATA生成技术栈标签、目录大纲、函数总览和逐行讲解块。每个讲解块包含行号、文本和笔记入口。"
+    },
+    {
+      "name": "jumpToLine",
+      "line": 260,
+      "summary": "跳转到指定代码行",
+      "detail": "滚动代码行到可视区域并高亮，同时滚动右侧对应的讲解块或函数块。"
+    },
+    {
+      "name": "scrollExplainToLine",
+      "line": 272,
+      "summary": "根据行号滚动讲解面板",
+      "detail": "在EXPLAIN_DATA.lines中查找包含目标行的讲解块，并滚动到该块。"
+    },
+    {
+      "name": "toggleQA",
+      "line": 286,
+      "summary": "切换追问面板显示",
+      "detail": "切换qaPane的show类以显示或隐藏追问面板。"
+    },
+    {
+      "name": "askQA",
+      "line": 287,
+      "summary": "发送追问请求",
+      "detail": "获取输入问题，若有选中行则附上对应代码，通过POST请求发送到后端，并显示回答。"
+    },
+    {
+      "name": "loadNotes",
+      "line": 320,
+      "summary": "从localStorage加载笔记",
+      "detail": "读取当前文件的笔记数据，兼容旧格式，解析为noteList数组。"
+    },
+    {
+      "name": "saveNotes",
+      "line": 330,
+      "summary": "保存笔记到localStorage",
+      "detail": "将noteList序列化后存储，更新界面上的笔记计数和行标记。"
+    },
+    {
+      "name": "addNote",
+      "line": 338,
+      "summary": "打开笔记编辑弹窗",
+      "detail": "基于当前选中行设置弹窗中的行范围，清空输入框，显示弹窗并绑定字数统计。"
+    },
+    {
+      "name": "closeNoteModal",
+      "line": 352,
+      "summary": "关闭笔记编辑弹窗",
+      "detail": "移除noteModal的show类以隐藏弹窗。"
+    },
+    {
+      "name": "saveNoteFromModal",
+      "line": 356,
+      "summary": "从弹窗保存笔记",
+      "detail": "获取标签和内容，截取长度限制，附带上下文代码，创建笔记对象并添加到noteList，然后保存并刷新界面。"
+    },
+    {
+      "name": "deleteNote",
+      "line": 374,
+      "summary": "删除指定笔记",
+      "detail": "根据id过滤noteList，保存并重新渲染笔记列表和讲解面板。"
+    },
+    {
+      "name": "markNoteLines",
+      "line": 381,
+      "summary": "在代码行上标记笔记",
+      "detail": "清除旧标记，遍历noteList为有笔记的起始行添加has-note类和笔记图标。"
+    },
+    {
+      "name": "toggleNoteDetail",
+      "line": 400,
+      "summary": "切换笔记详情显示",
+      "detail": "根据索引切换笔记卡片详情部分的显示状态。"
+    },
+    {
+      "name": "jumpToNote",
+      "line": 404,
+      "summary": "跳转到笔记对应的代码行",
+      "detail": "根据笔记id找到起始行，滚动并高亮该行，同时打开笔记面板。"
+    },
+    {
+      "name": "toggleNotesPanel",
+      "line": 412,
+      "summary": "切换笔记侧边栏显示",
+      "detail": "切换notesPanel的show类，并重新渲染笔记列表。"
+    },
+    {
+      "name": "renderNoteList",
+      "line": 417,
+      "summary": "渲染笔记列表",
+      "detail": "根据搜索框关键词过滤笔记，生成笔记卡片HTML，包含标签、行号、代码片段、内容和删除按钮。"
+    },
+    {
+      "name": "escapeHtml",
+      "line": 445,
+      "summary": "HTML转义函数",
+      "detail": "与esc相同，将字符串中的&、<、>替换为HTML实体。"
+    },
+    {
+      "name": "addNoteAtLine",
+      "line": 448,
+      "summary": "在指定行范围添加笔记",
+      "detail": "设置selectedLines为给定范围，然后调用addNote打开编辑弹窗。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 156,
+      "end": 164,
+      "text": "JavaScript初始化：从模板变量获取文件路径、完整代码、是否有预生成讲解等数据，并初始化selectedLines、qaHistory、notes等状态变量。"
+    },
+    {
+      "start": 167,
+      "end": 174,
+      "text": "renderCode函数：遍历FULL_CODE数组，为每行生成带行号和内容的div，并绑定onCodeClick点击事件。使用esc函数转义HTML特殊字符。"
+    },
+    {
+      "start": 177,
+      "end": 197,
+      "text": "onCodeClick函数：处理代码行点击事件。支持Shift键范围选择、Ctrl键切换选择、普通点击单选。更新selectedLines数组和界面高亮，联动右侧讲解滚动。"
+    },
+    {
+      "start": 200,
+      "end": 258,
+      "text": "renderExplain函数：根据EXPLAIN_DATA生成技术栈标签、目录大纲、函数总览和逐行讲解块。每个讲解块包含行号、文本和笔记入口。"
+    },
+    {
+      "start": 260,
+      "end": 270,
+      "text": "jumpToLine函数：滚动代码行到可视区域并高亮，同时滚动右侧对应的讲解块或函数块。"
+    },
+    {
+      "start": 272,
+      "end": 283,
+      "text": "scrollExplainToLine函数：在EXPLAIN_DATA.lines中查找包含目标行的讲解块，并滚动到该块。"
+    },
+    {
+      "start": 286,
+      "end": 286,
+      "text": "toggleQA函数：切换追问面板的显示状态。"
+    },
+    {
+      "start": 287,
+      "end": 313,
+      "text": "askQA函数：获取输入问题，若有选中行则附上对应代码，通过POST请求发送到后端，并显示回答。"
+    },
+    {
+      "start": 320,
+      "end": 329,
+      "text": "loadNotes函数：从localStorage读取当前文件的笔记数据，兼容旧格式，解析为noteList数组。"
+    },
+    {
+      "start": 330,
+      "end": 336,
+      "text": "saveNotes函数：将noteList序列化后存储到localStorage，更新界面上的笔记计数和行标记。"
+    },
+    {
+      "start": 338,
+      "end": 350,
+      "text": "addNote函数：基于当前选中行设置弹窗中的行范围，清空输入框，显示弹窗并绑定字数统计。"
+    },
+    {
+      "start": 356,
+      "end": 372,
+      "text": "saveNoteFromModal函数：从弹窗获取标签和内容，截取长度限制，附带上下文代码，创建笔记对象并添加到noteList，然后保存并刷新界面。"
+    },
+    {
+      "start": 374,
+      "end": 379,
+      "text": "deleteNote函数：根据id过滤noteList，保存并重新渲染笔记列表和讲解面板。"
+    },
+    {
+      "start": 381,
+      "end": 398,
+      "text": "markNoteLines函数：清除旧标记，遍历noteList为有笔记的起始行添加has-note类和笔记图标。"
+    },
+    {
+      "start": 417,
+      "end": 443,
+      "text": "renderNoteList函数：根据搜索框关键词过滤笔记，生成笔记卡片HTML，包含标签、行号、代码片段、内容和删除按钮。"
+    },
+    {
+      "start": 448,
+      "end": 452,
+      "text": "addNoteAtLine函数：设置selectedLines为给定范围，然后调用addNote打开编辑弹窗。"
+    },
+    {
+      "start": 455,
+      "end": 464,
+      "text": "初始化执行：加载笔记、渲染代码、渲染讲解、标记笔记行、更新计数，捕获错误并显示。"
+    }
+  ]
+}

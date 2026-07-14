@@ -1,0 +1,109 @@
+{
+  "tech_stack": [
+    "Jinja2",
+    "JavaScript"
+  ],
+  "outline": [
+    {
+      "title": "模板继承与页面标题 (L1-L2)",
+      "line": 1
+    },
+    {
+      "title": "内容块开始与容器 (L4-L6)",
+      "line": 4
+    },
+    {
+      "title": "上传区 (L8-L21)",
+      "line": 8
+    },
+    {
+      "title": "文件列表 (L23-L57)",
+      "line": 23
+    },
+    {
+      "title": "内容块结束 (L59)",
+      "line": 59
+    },
+    {
+      "title": "额外脚本块开始 (L61-L62)",
+      "line": 61
+    },
+    {
+      "title": "文件选择预览事件 (L64-L80)",
+      "line": 64
+    },
+    {
+      "title": "上传函数 (L82-L119)",
+      "line": 82
+    },
+    {
+      "title": "删除函数 (L121-L134)",
+      "line": 121
+    },
+    {
+      "title": "消息显示函数 (L136-L140)",
+      "line": 136
+    },
+    {
+      "title": "额外脚本块结束 (L142)",
+      "line": 142
+    }
+  ],
+  "functions": [
+    {
+      "name": "uploadFiles",
+      "line": 82,
+      "summary": "批量上传文件到服务器",
+      "detail": "获取文件输入，构建FormData，通过XMLHttpRequest发送POST请求到/api/admin/upload。上传期间禁用按钮并显示上传中，成功后刷新页面，失败显示错误信息。"
+    },
+    {
+      "name": "deleteCourse",
+      "line": 121,
+      "summary": "删除指定课程",
+      "detail": "弹出确认对话框，确认后发送DELETE请求到/api/admin/course/{id}，成功则刷新页面，失败弹出错误信息。"
+    },
+    {
+      "name": "showMsg",
+      "line": 136,
+      "summary": "显示上传消息",
+      "detail": "获取id为upload-msg的元素，设置其文本内容和CSS类名以显示成功或错误消息。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 1,
+      "end": 2,
+      "text": "继承base.html模板并设置页面标题为'文件管理 — 管理后台'。"
+    },
+    {
+      "start": 12,
+      "end": 20,
+      "text": "定义上传表单，包含多文件输入、预览区域和上传按钮，按钮调用uploadFiles函数。"
+    },
+    {
+      "start": 25,
+      "end": 56,
+      "text": "显示已有文件列表，遍历courses变量生成表格，包含ID、标题、类型、大小、上传时间和操作列，空时显示提示。"
+    },
+    {
+      "start": 64,
+      "end": 80,
+      "text": "监听文件选择变化，更新预览区域显示已选文件数量、名称（去掉扩展名）和大小。"
+    },
+    {
+      "start": 82,
+      "end": 119,
+      "text": "uploadFiles函数：验证文件存在，构建FormData，禁用按钮并显示上传中，通过XHR异步上传，成功后刷新页面，失败显示错误。"
+    },
+    {
+      "start": 121,
+      "end": 134,
+      "text": "deleteCourse函数：确认后发送DELETE请求删除课程，成功刷新页面，失败弹出错误。"
+    },
+    {
+      "start": 136,
+      "end": 140,
+      "text": "showMsg函数：更新上传消息元素的文本和样式类。"
+    }
+  ]
+}

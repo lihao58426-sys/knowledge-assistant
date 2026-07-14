@@ -1,0 +1,17 @@
+{
+  "tech_stack": [],
+  "outline": [
+    {
+      "title": "Cookie数据列表 (L1)",
+      "line": 1
+    }
+  ],
+  "functions": [],
+  "lines": [
+    {
+      "start": 1,
+      "end": 1,
+      "text": "该行是一个JSON数组，包含多个Cookie对象，每个对象有name、value、domain、path、expires、httpOnly、secure、sameSite字段，用于浏览器存储会话、用户偏好和跟踪信息。"
+    }
+  ]
+}

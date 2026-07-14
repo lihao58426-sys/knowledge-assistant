@@ -1,0 +1,103 @@
+{
+  "tech_stack": [
+    "Jinja2",
+    "HTML",
+    "CSS",
+    "JavaScript"
+  ],
+  "outline": [
+    {
+      "title": "模板继承与标题 (L1-L2)",
+      "line": 1
+    },
+    {
+      "title": "内容块开始与容器 (L4-L5)",
+      "line": 4
+    },
+    {
+      "title": "统计卡片区域 (L8-L31)",
+      "line": 8
+    },
+    {
+      "title": "进度表格结构 (L35-L90)",
+      "line": 35
+    },
+    {
+      "title": "备用码管理工具 (L92-L100)",
+      "line": 92
+    },
+    {
+      "title": "内容块结束 (L102)",
+      "line": 102
+    },
+    {
+      "title": "额外脚本块与函数定义 (L104-L130)",
+      "line": 104
+    }
+  ],
+  "functions": [
+    {
+      "name": "generateAllBackupCodes",
+      "line": 106,
+      "summary": "为所有学员生成备用码",
+      "detail": "通过确认弹窗后，发送POST请求到'/api/admin/backup-codes'。成功时解析JSON响应，动态生成表格展示每个学员的姓名、账号和备用码；失败时弹出错误提示。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 1,
+      "end": 2,
+      "text": "继承base.html模板并设置页面标题为'管理后台 — 总览看板'。"
+    },
+    {
+      "start": 5,
+      "end": 5,
+      "text": "定义管理后台容器div，用于整体布局。"
+    },
+    {
+      "start": 9,
+      "end": 11,
+      "text": "统计卡片显示学员数，使用模板变量total_users。"
+    },
+    {
+      "start": 13,
+      "end": 15,
+      "text": "统计卡片显示课程数，使用模板变量total_courses。"
+    },
+    {
+      "start": 18,
+      "end": 28,
+      "text": "通过Jinja2的namespace和循环计算已完成进度项总数，并显示在统计卡片中。"
+    },
+    {
+      "start": 36,
+      "end": 44,
+      "text": "定义进度表格的表头，包含学员、部门、课程进度、总进度和状态列。"
+    },
+    {
+      "start": 47,
+      "end": 87,
+      "text": "遍历dashboard_data，为每个学员生成表格行，展示姓名、部门、各课程进度条、总进度百分比和状态标签。"
+    },
+    {
+      "start": 53,
+      "end": 62,
+      "text": "内层循环渲染每个课程的进度单元格，根据completed类显示完成或待定样式，并显示进度条和百分比。"
+    },
+    {
+      "start": 74,
+      "end": 84,
+      "text": "使用namespace判断所有进度项是否完成，根据结果显示'未分配'、'全部完成'或'学习中'状态标签。"
+    },
+    {
+      "start": 93,
+      "end": 100,
+      "text": "备用码管理区域，包含说明文字和生成按钮，点击后调用JavaScript函数。"
+    },
+    {
+      "start": 106,
+      "end": 129,
+      "text": "定义generateAllBackupCodes函数，发送POST请求，成功时动态生成表格展示备用码，失败时弹出警告。"
+    }
+  ]
+}

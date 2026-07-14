@@ -1,0 +1,100 @@
+{
+  "tech_stack": [
+    "os",
+    "sys",
+    "json",
+    "requests"
+  ],
+  "outline": [
+    {
+      "title": "文件头与导入 (L1-L7)",
+      "line": 1
+    },
+    {
+      "title": "配置常量 (L9-L11)",
+      "line": 9
+    },
+    {
+      "title": "语言配置字典 (L15-L56)",
+      "line": 15
+    },
+    {
+      "title": "核心函数 generate (L59-L137)",
+      "line": 59
+    },
+    {
+      "title": "入口主程序 (L140-L144)",
+      "line": 140
+    }
+  ],
+  "functions": [
+    {
+      "name": "generate",
+      "line": 59,
+      "summary": "读取文件，调用 DeepSeek API 生成讲解 JSON 并保存",
+      "detail": "接收文件路径，根据扩展名选择导师角色和 JSON 结构。读取文件内容并添加行号，构造 prompt 发送给 DeepSeek API。解析返回的 JSON，清理可能的 markdown 包裹，最后保存到 .explanations 目录下。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 9,
+      "end": 11,
+      "text": "定义 API 密钥、URL 和输出目录，密钥从环境变量获取，默认空字符串。"
+    },
+    {
+      "start": 15,
+      "end": 56,
+      "text": "LANG_CONFIG 字典按扩展名映射导师角色、是否包含函数字段以及提示文本，支持 .py、.js、.html、.css、.yaml、.json、.md、.txt。"
+    },
+    {
+      "start": 59,
+      "end": 64,
+      "text": "generate 函数入口，获取扩展名并查找配置，若不支持则打印跳过信息并返回空字典。"
+    },
+    {
+      "start": 66,
+      "end": 73,
+      "text": "读取文件内容，按换行分割，为每行添加 L行号: 前缀，方便 AI 直接引用行号。"
+    },
+    {
+      "start": 76,
+      "end": 79,
+      "text": "根据配置决定是否在 JSON 格式中包含 functions 字段，若 has_functions 为 True 则添加对应 schema。"
+    },
+    {
+      "start": 81,
+      "end": 96,
+      "text": "构造完整 prompt，包含角色、JSON 格式、关键规则、提示文本和带行号的代码内容。"
+    },
+    {
+      "start": 98,
+      "end": 109,
+      "text": "设置请求头，构造请求体，使用 deepseek-chat 模型，temperature 0.2，max_tokens 4000。"
+    },
+    {
+      "start": 111,
+      "end": 114,
+      "text": "打印生成提示，发送 POST 请求，检查状态码，提取返回的 content 字段。"
+    },
+    {
+      "start": 116,
+      "end": 121,
+      "text": "清理返回内容：去除可能的 markdown 代码块包裹，然后解析为 JSON 对象。"
+    },
+    {
+      "start": 123,
+      "end": 132,
+      "text": "创建输出目录，根据文件路径构造输出文件名（若在 tests/ 子目录则添加 _tests 前缀），将结果写入 JSON 文件。"
+    },
+    {
+      "start": 134,
+      "end": 137,
+      "text": "打印保存路径和统计信息（大纲条数、函数个数、逐行讲解条数），返回结果字典。"
+    },
+    {
+      "start": 140,
+      "end": 144,
+      "text": "主入口：检查命令行参数，若不足则打印用法并退出，否则调用 generate 处理指定文件。"
+    }
+  ]
+}

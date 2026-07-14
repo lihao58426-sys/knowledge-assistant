@@ -1,0 +1,69 @@
+{
+  "tech_stack": [
+    "yaml",
+    "python"
+  ],
+  "outline": [
+    {
+      "title": "多店支持概述 (L1)",
+      "line": 1
+    },
+    {
+      "title": "配置文件改动 (L3)",
+      "line": 3
+    },
+    {
+      "title": "爬虫模块改动 (L4)",
+      "line": 4
+    },
+    {
+      "title": "数据库模块改动 (L5)",
+      "line": 5
+    },
+    {
+      "title": "主流程控制改动 (L6)",
+      "line": 6
+    },
+    {
+      "title": "向后兼容设计 (L8)",
+      "line": 8
+    },
+    {
+      "title": "参考来源 (L10-L15)",
+      "line": 10
+    }
+  ],
+  "functions": [],
+  "lines": [
+    {
+      "start": 1,
+      "end": 1,
+      "text": "概述多店支持的核心思路：通过store_id标签区分数据，涉及四个文件改动。"
+    },
+    {
+      "start": 3,
+      "end": 3,
+      "text": "config.yaml改为门店列表，每个门店有独立id、name、account_env和password_env。"
+    },
+    {
+      "start": 4,
+      "end": 4,
+      "text": "crawler.py从固定环境变量改为接受门店参数，循环遍历所有门店抓取数据。"
+    },
+    {
+      "start": 5,
+      "end": 5,
+      "text": "database.py在存储时为每条记录添加store_id字段，实现数据隔离。"
+    },
+    {
+      "start": 6,
+      "end": 6,
+      "text": "main.py流程控制改为遍历门店列表，依次执行抓取、存储、拼日报和推送。"
+    },
+    {
+      "start": 8,
+      "end": 8,
+      "text": "向后兼容设计：单店用户不配置stores时自动使用默认值，数据库新增列有DEFAULT值。"
+    }
+  ]
+}

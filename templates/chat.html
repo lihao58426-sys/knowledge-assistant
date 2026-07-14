@@ -56,7 +56,6 @@
     <a href="/?project={{ active_project or '' }}&mode=tutor" class="mode-btn {% if mode=='tutor' %}active{% endif %}">🎓 导师</a>
     <a href="/?mode=docs" class="mode-btn {% if mode=='docs' %}active{% endif %}">📄 文档</a>
     <a href="/notebook" class="mode-btn">📒 笔记</a>
-    <a href="/arch" class="mode-btn">🗂️ 架构</a>
   </div>
 </div>
 
@@ -125,7 +124,93 @@
 <div style="font-size:13px;color:#64748b;text-align:center;margin-bottom:12px">当前范围：<b>{{ active_project }}</b>（此项目内搜索结果）</div>
 {% endif %}
 {% if not question %}
-<div class="empty">问我关于你的项目、代码或技术文档的任何问题</div>
+
+<script src="/static/echarts.min.js"></script>
+<div style="position:relative;width:100%;height:460px;margin:16px 0">
+  <div id="homeGraph" style="width:100%;height:100%"></div>
+  <div id="backBtn" style="position:absolute;top:10px;left:10px;display:none">
+    <button onclick="goBack()" style="background:rgba(79,70,229,.9);color:#fff;border:none;padding:5px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:500">← 返回总览</button>
+  </div>
+</div>
+<script>
+var ARCH_DATA = {{ arch_json|safe }};
+var chart = echarts.init(document.getElementById('homeGraph'));
+
+var mainData = [
+  {name:'POS日报推送',proj:'pos_daily_report',desc:'Playwright · SQLite · 企微Webhook · Docker',color:'#f59e0b'},
+  {name:'RFM客户分析',proj:'rfm_report',desc:'FastAPI · ECharts · CSV解析 · Docker',color:'#10b981'},
+  {name:'AI短视频',proj:'auto_video',desc:'DeepSeek · QwenVL · edge-tts · FFmpeg',color:'#3b82f6'},
+  {name:'无人直播',proj:'live_stream',desc:'DeepSeek · edge-tts · pygame',color:'#8b5cf6'},
+  {name:'内网培训',proj:'内网培训系统demo',desc:'FastAPI · SQLAlchemy · bcrypt · PyInstaller',color:'#ec4899'},
+  {name:'知识库助手',proj:'knowledge-assistant',desc:'ChromaDB · DeepSeek · FastAPI · ECharts',color:'#4f46e5'},
+];
+
+function goBack() {
+  showMain();
+}
+
+function showMain() {
+  sessionStorage.removeItem('drillProj');
+  document.getElementById('backBtn').style.display = 'none';
+  var nodes = mainData.map(function(d){ return {name:d.name,proj:d.proj,tech:d.desc,itemStyle:{color:d.color},symbolSize:50}; });
+  var links = mainData.slice(1).map(function(d){ return {source:'知识库助手',target:d.name}; });
+  chart.setOption({
+    tooltip: { formatter: function(p){ return p.dataType==='node'?'<b>'+p.name+'</b>'+(p.data.tech?'<br/><small>'+p.data.tech+'</small>':''):''; }},
+    series: [{ type: 'graph', layout: 'force', roam: false, draggable: true,
+      force: { repulsion: 350, edgeLength: [180, 350], gravity: 0.08 },
+      data: nodes, links: links,
+      lineStyle: { color: '#e2e8f0', width: 1.5, curveness: 0.2 },
+      label: { show: true, position: 'bottom', fontSize: 13, color: '#475569', fontWeight: 600 }
+    }]
+  });
+  chart.off('click');
+  chart.on('click', function(p) {
+    if (p.dataType !== 'node' || !p.data.proj) return;
+    showProject(p.data.proj);
+  });
+}
+
+function showProject(proj) {
+  var data = ARCH_DATA[proj];
+  if (!data) return;
+  sessionStorage.setItem('drillProj', proj);
+  document.getElementById('backBtn').style.display = 'block';
+  var nodes = data.nodes.map(function(n) {
+    var copy = {};
+    for (var k in n) copy[k] = n[k];
+    if (copy.category === 0) { copy.symbolSize = 40; copy.itemStyle = {color:'#f59e0b'}; copy.label = {show:true,fontSize:13,color:'#1e293b'}; }
+    else if (copy.category === 1) { copy.symbolSize = 28; copy.itemStyle = {color:'#4f46e5'}; copy.label = {show:true,fontSize:11,color:'#64748b'}; }
+    else { copy.symbolSize = 20; copy.itemStyle = {color:'#cbd5e1'}; copy.label = {show:true,fontSize:10,color:'#94a3b8'}; }
+    return copy;
+  });
+  var links = data.links.map(function(l) {
+    return {source: l.source, target: l.target, lineStyle: {color:'#e2e8f0',curveness:0.2}};
+  });
+  chart.setOption({
+    tooltip: { formatter: function(p){ return p.dataType==='node'?'<b>'+p.name+'</b>'+(p.data.tech?'<br/><small>'+p.data.tech+'</small>':''):''; }},
+    series: [{ type: 'graph', layout: 'force', roam: true, draggable: true,
+      force: { repulsion: 300, edgeLength: [100, 300] },
+      data: nodes, links: links,
+      categories: [{name:'入口'},{name:'模块'},{name:'配置'}]
+    }]
+  });
+  chart.off('click');
+  chart.on('click', function(ev) {
+    if (ev.dataType==='node' && ev.data.file) {
+      window.open('/reader?project='+proj+'&file='+encodeURIComponent(ev.data.file));
+    }
+  });
+}
+
+var urlProject = new URLSearchParams(window.location.search).get('project');
+if (urlProject && ARCH_DATA[urlProject]) {
+  showProject(urlProject);
+} else {
+  showMain();
+}
+window.addEventListener('resize', function(){ chart.resize(); });
+</script>
+
 {% endif %}
 {% if question %}
 <div class="qa"><div class="q">{{ question }}</div><div class="a">{{ answer }}</div></div>

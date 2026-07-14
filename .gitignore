@@ -3,3 +3,7 @@ chroma_db*/
 *.pyc
 .pytest_cache/
 .model-cache/
+# 讲解目录 - 排除重复/隐藏文件
+.explanations/.*
+# 临时脚本
+_gen_batch.py

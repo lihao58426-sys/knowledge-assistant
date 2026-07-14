@@ -1,0 +1,37 @@
+{
+  "tech_stack": [
+    "fastapi",
+    "uvicorn",
+    "jinja2",
+    "python-multipart"
+  ],
+  "outline": [
+    {
+      "title": "依赖声明 (L1-L5)",
+      "line": 1
+    }
+  ],
+  "functions": [],
+  "lines": [
+    {
+      "start": 1,
+      "end": 1,
+      "text": "声明 FastAPI 框架依赖，用于构建 Web API。"
+    },
+    {
+      "start": 2,
+      "end": 2,
+      "text": "声明 Uvicorn 服务器依赖，用于运行 ASGI 应用。"
+    },
+    {
+      "start": 3,
+      "end": 3,
+      "text": "声明 Jinja2 模板引擎依赖，用于渲染 HTML 模板。"
+    },
+    {
+      "start": 4,
+      "end": 4,
+      "text": "声明 python-multipart 依赖，用于处理表单上传数据。"
+    }
+  ]
+}

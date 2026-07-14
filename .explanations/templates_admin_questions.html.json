@@ -1,0 +1,121 @@
+{
+  "tech_stack": [
+    "Jinja2",
+    "JavaScript"
+  ],
+  "outline": [
+    {
+      "title": "模板继承与标题 (L1-L2)",
+      "line": 1
+    },
+    {
+      "title": "页面容器与返回链接 (L4-L9)",
+      "line": 4
+    },
+    {
+      "title": "课程切换下拉框 (L11-L20)",
+      "line": 11
+    },
+    {
+      "title": "添加题目表单 (L22-L70)",
+      "line": 22
+    },
+    {
+      "title": "题目列表展示 (L72-L100)",
+      "line": 72
+    },
+    {
+      "title": "JavaScript 脚本块 (L104-L174)",
+      "line": 104
+    }
+  ],
+  "functions": [
+    {
+      "name": "switchCourse",
+      "line": 106,
+      "summary": "切换课程跳转",
+      "detail": "根据下拉框选中的课程ID，跳转到对应题库管理页面。如果ID为空则不跳转。"
+    },
+    {
+      "name": "onTypeChange",
+      "line": 110,
+      "summary": "根据题型调整选项显示",
+      "detail": "当题型切换为判断题时，隐藏C/D选项，自动填充A为'正确'、B为'错误'并设为只读；其他题型恢复可编辑并清空预设值。"
+    },
+    {
+      "name": "addQuestion",
+      "line": 130,
+      "summary": "异步提交添加题目",
+      "detail": "收集表单数据，验证题目内容和答案非空，通过POST请求发送到后端API，成功后刷新页面并显示提示消息。"
+    },
+    {
+      "name": "deleteQuestion",
+      "line": 154,
+      "summary": "确认后删除题目",
+      "detail": "弹出确认对话框，若用户确认则发送DELETE请求删除指定ID的题目，成功后刷新页面，失败则弹出错误信息。"
+    },
+    {
+      "name": "showMsg",
+      "line": 169,
+      "summary": "显示操作反馈消息",
+      "detail": "在表单旁的span元素中设置文本内容和样式类，用于显示成功或错误提示。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 1,
+      "end": 2,
+      "text": "继承 base.html 模板并设置页面标题为'题库管理 — 课程名'。"
+    },
+    {
+      "start": 14,
+      "end": 14,
+      "text": "课程切换下拉框绑定 onchange 事件，调用 switchCourse 函数。"
+    },
+    {
+      "start": 30,
+      "end": 34,
+      "text": "题型选择下拉框，包含单选、多选、判断题，切换时触发 onTypeChange。"
+    },
+    {
+      "start": 45,
+      "end": 66,
+      "text": "选项输入区域，包含A/B/C/D四个选项输入框，C/D区域有独立id用于隐藏。"
+    },
+    {
+      "start": 67,
+      "end": 68,
+      "text": "添加题目按钮和消息显示区域，按钮调用 addQuestion 函数。"
+    },
+    {
+      "start": 77,
+      "end": 95,
+      "text": "遍历 questions 列表，渲染每个题目的序号、类型标签、答案、删除按钮、题目文本和选项。"
+    },
+    {
+      "start": 106,
+      "end": 108,
+      "text": "switchCourse 函数：根据课程ID跳转到对应题库页面。"
+    },
+    {
+      "start": 110,
+      "end": 128,
+      "text": "onTypeChange 函数：处理题型切换逻辑，判断题隐藏C/D并预设A/B为只读。"
+    },
+    {
+      "start": 130,
+      "end": 152,
+      "text": "addQuestion 函数：验证表单、异步POST提交题目，成功后刷新页面。"
+    },
+    {
+      "start": 154,
+      "end": 167,
+      "text": "deleteQuestion 函数：确认后发送DELETE请求删除题目，成功刷新页面。"
+    },
+    {
+      "start": 169,
+      "end": 173,
+      "text": "showMsg 函数：在指定元素中显示提示消息并设置样式类。"
+    }
+  ]
+}

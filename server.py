@@ -4,6 +4,7 @@
 """
 
 import os
+import json
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
@@ -50,7 +51,8 @@ async def home(request: Request):
 
     return HTMLResponse(jinja_env.get_template("chat.html").render(
         request=request, active_project=project, mode=mode, tutor_files=tutor_files,
-        doc_files=doc_files, projects=PROJECT_ROOTS.keys()))
+        doc_files=doc_files, projects=PROJECT_ROOTS.keys(),
+        arch_json=json.dumps(GRAPH_DATA, ensure_ascii=False)))
 
 @app.post("/ask")
 async def api_ask(request: Request):
@@ -125,24 +127,6 @@ PROJECT_ROOTS = {
     "knowledge-assistant": r"E:\Trae CN\AI-Kart-Live\knowledge-assistant",
 }
 
-@app.get("/tutor", response_class=HTMLResponse)
-async def tutor_page(request: Request):
-    """导师模式 — 选项目 → 选文件"""
-    project = request.query_params.get("project", "")
-    files = []
-    if project and project in PROJECT_ROOTS:
-        root = PROJECT_ROOTS[project]
-        for dirpath, _, filenames in _os.walk(root):
-            if any(s in dirpath for s in ["__pycache__", ".git", "chroma_db", "build_tmp", "dist", "data", "uploads", "output", "materials", "temp"]):
-                continue
-            for f in filenames:
-                if f.endswith((".py", ".md")):
-                    files.append(_os.path.join(dirpath, f))
-        files.sort()
-    return HTMLResponse(jinja_env.get_template("tutor.html").render(
-        request=request, project=project, files=files, projects=PROJECT_ROOTS.keys()))
-
-
 @app.post("/tutor/explain", response_class=HTMLResponse)
 async def tutor_explain(request: Request):
     """读文件 → 发给 DeepSeek 讲解（支持多文件勾选）"""
@@ -201,45 +185,7 @@ async def tutor_explain(request: Request):
         code_preview=all_code[:3000] + ("..." if len(all_code) > 3000 else "")))
 
 
-# ── 逐行讲解模式 ──
-
-@app.get("/code-tutor", response_class=HTMLResponse)
-async def code_tutor_page(request: Request):
-    """代码逐行讲解页面"""
-    project = request.query_params.get("project", "")
-    filepath = request.query_params.get("file", "")
-    code_lines = []
-    fname = ""
-
-    # 文件列表
-    tutor_files = []
-    if project and project in PROJECT_ROOTS:
-        root = PROJECT_ROOTS[project]
-        for dirpath, _, filenames in _os.walk(root):
-            if any(s in dirpath for s in ["__pycache__", ".git", "chroma_db", "build_tmp",
-                                           "dist", "data", "uploads", "output", "materials", "temp"]):
-                continue
-            for f in filenames:
-                if f.endswith(".py"):
-                    tutor_files.append(_os.path.join(dirpath, f))
-        tutor_files.sort()
-
-    # 如果有文件路径 → 读代码
-    if filepath and _os.path.exists(filepath):
-        with open(filepath, "r", encoding="utf-8") as f:
-            code_lines = f.read().split('\n')
-        fname = _os.path.basename(filepath)
-
-    import json as _json
-    return HTMLResponse(jinja_env.get_template("code-tutor.html").render(
-        request=request, project=project,
-        filepath=filepath, filepath_json=_json.dumps(filepath, ensure_ascii=False),
-        fname=fname,
-        code_json=_json.dumps(code_lines, ensure_ascii=False),
-        tutor_files=tutor_files, tutor_files_json=_json.dumps(tutor_files, ensure_ascii=False),
-        projects=PROJECT_ROOTS.keys(),
-        mode="tutor", active_project=project))
-
+# ── 追问 API（reader 和 notebook 共用）──
 
 @app.post("/code-tutor/explain")
 async def code_tutor_explain(request: Request):
@@ -292,15 +238,18 @@ async def notebook_page(request: Request):
 GRAPH_DATA = {
     "pos_daily_report": {
         "nodes": [
-            {"name":"main.py","category":0,"file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\main.py"},
-            {"name":"config.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\config.py"},
-            {"name":"crawler.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\crawler.py"},
-            {"name":"models.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\models.py"},
-            {"name":"database.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\database.py"},
-            {"name":"report.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\report.py"},
-            {"name":"pusher.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\pusher.py"},
-            {"name":"exceptions.py","category":2,"file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\exceptions.py"},
-            {"name":"config.yaml","category":2,"file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\config.yaml"},
+            {"name":"main.py","category":0,"tech":"调度入口 · APScheduler · 自调度算法","file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\main.py"},
+            {"name":"config.py","category":1,"tech":"YAML 配置管理 · 多店支持","file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\config.py"},
+            {"name":"crawler.py","category":1,"tech":"Playwright · 反检测 · 自动登录","file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\crawler.py"},
+            {"name":"models.py","category":1,"tech":"dataclass · 类型定义","file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\models.py"},
+            {"name":"database.py","category":1,"tech":"SQLite · CRUD · 历史查询","file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\database.py"},
+            {"name":"report.py","category":1,"tech":"报告生成 · 环比计算","file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\report.py"},
+            {"name":"pusher.py","category":1,"tech":"企业微信 Webhook · Markdown","file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\pusher.py"},
+            {"name":"exceptions.py","category":2,"tech":"自定义异常类","file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\exceptions.py"},
+            {"name":"config.yaml","category":2,"tech":"多店铺配置数据","file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\config.yaml"},
+            {"name":"business_overview.html","category":2,"tech":"营业概况 · ECharts 仪表盘","file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\business_overview.html"},
+            {"name":"overview_page.html","category":2,"tech":"数据总览 · 多店对比","file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\overview_page.html"},
+            {"name":"product_sales.html","category":2,"tech":"商品销售排名 · 趋势图","file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\product_sales.html"},
         ],
         "links": [
             {"source":"main.py","target":"config.py"},
@@ -309,6 +258,9 @@ GRAPH_DATA = {
             {"source":"main.py","target":"database.py"},
             {"source":"main.py","target":"report.py"},
             {"source":"main.py","target":"pusher.py"},
+            {"source":"main.py","target":"business_overview.html"},
+            {"source":"main.py","target":"overview_page.html"},
+            {"source":"main.py","target":"product_sales.html"},
             {"source":"crawler.py","target":"config.py"},
             {"source":"crawler.py","target":"exceptions.py"},
             {"source":"database.py","target":"models.py"},
@@ -318,29 +270,38 @@ GRAPH_DATA = {
     },
     "rfm_report": {
         "nodes": [
-            {"name":"server.py","category":0,"file":r"E:\Trae CN\AI-Kart-Live\rfm_report\server.py"},
-            {"name":"analysis.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\rfm_report\analysis.py"},
-            {"name":"upload.html","category":1,"file":r"E:\Trae CN\AI-Kart-Live\rfm_report\templates\upload.html"},
-            {"name":"report.html","category":1,"file":r"E:\Trae CN\AI-Kart-Live\rfm_report\templates\report.html"},
-            {"name":"echarts.min.js","category":2,"file":""},
+            {"name":"server.py","category":0,"tech":"FastAPI · 路由 · 文件上传","file":r"E:\Trae CN\AI-Kart-Live\rfm_report\server.py"},
+            {"name":"analysis.py","category":1,"tech":"RFM 分群 · CLV · 留存曲线","file":r"E:\Trae CN\AI-Kart-Live\rfm_report\analysis.py"},
+            {"name":"charts.js","category":1,"tech":"ECharts 柱状图 · 饼图 · 折线图","file":r"E:\Trae CN\AI-Kart-Live\rfm_report\charts.js"},
+            {"name":"rfm.js","category":1,"tech":"RFM 计算 · 8类分群算法","file":r"E:\Trae CN\AI-Kart-Live\rfm_report\rfm.js"},
+            {"name":"config.js","category":1,"tech":"前端配置 · 图表颜色常量","file":r"E:\Trae CN\AI-Kart-Live\rfm_report\config.js"},
+            {"name":"upload.html","category":1,"tech":"CSV 上传 · Jinja2 模板","file":r"E:\Trae CN\AI-Kart-Live\rfm_report\templates\upload.html"},
+            {"name":"report.html","category":1,"tech":"分析报告 · ECharts 可视化","file":r"E:\Trae CN\AI-Kart-Live\rfm_report\templates\report.html"},
+            {"name":"echarts.min.js","category":2,"tech":"ECharts 图表库","file":r"E:\Trae CN\AI-Kart-Live\rfm_report\static\echarts.min.js"},
         ],
         "links": [
             {"source":"server.py","target":"analysis.py"},
             {"source":"server.py","target":"upload.html"},
             {"source":"server.py","target":"report.html"},
             {"source":"report.html","target":"echarts.min.js"},
+            {"source":"report.html","target":"charts.js"},
+            {"source":"report.html","target":"rfm.js"},
+            {"source":"report.html","target":"config.js"},
+            {"source":"charts.js","target":"config.js"},
+            {"source":"rfm.js","target":"config.js"},
+            {"source":"charts.js","target":"rfm.js"},
         ]
     },
     "auto_video": {
         "nodes": [
-            {"name":"main.py","category":0,"file":r"E:\Trae CN\AI-Kart-Live\auto_video\main.py"},
-            {"name":"config.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\auto_video\config.py"},
-            {"name":"platforms.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\auto_video\platforms.py"},
-            {"name":"materials.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\auto_video\materials.py"},
-            {"name":"script_gen.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\auto_video\script_gen.py"},
-            {"name":"voice.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\auto_video\voice.py"},
-            {"name":"scenes.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\auto_video\scenes.py"},
-            {"name":"compose.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\auto_video\compose.py"},
+            {"name":"main.py","category":0,"tech":"流程编排入口","file":r"E:\Trae CN\AI-Kart-Live\auto_video\main.py"},
+            {"name":"config.py","category":1,"tech":"配置管理 · 三平台参数","file":r"E:\Trae CN\AI-Kart-Live\auto_video\config.py"},
+            {"name":"platforms.py","category":1,"tech":"抖音 · 小红书 · 视频号差异化","file":r"E:\Trae CN\AI-Kart-Live\auto_video\platforms.py"},
+            {"name":"materials.py","category":1,"tech":"Qwen VL · 素材扫描识别","file":r"E:\Trae CN\AI-Kart-Live\auto_video\materials.py"},
+            {"name":"script_gen.py","category":1,"tech":"DeepSeek · AI 脚本生成","file":r"E:\Trae CN\AI-Kart-Live\auto_video\script_gen.py"},
+            {"name":"voice.py","category":1,"tech":"edge-tts · 语音合成","file":r"E:\Trae CN\AI-Kart-Live\auto_video\voice.py"},
+            {"name":"scenes.py","category":1,"tech":"场景模板 · 转场效果","file":r"E:\Trae CN\AI-Kart-Live\auto_video\scenes.py"},
+            {"name":"compose.py","category":1,"tech":"FFmpeg · 视频合成","file":r"E:\Trae CN\AI-Kart-Live\auto_video\compose.py"},
         ],
         "links": [
             {"source":"main.py","target":"config.py"},
@@ -358,10 +319,10 @@ GRAPH_DATA = {
     },
     "live_stream": {
         "nodes": [
-            {"name":"main.py","category":0,"file":r"E:\Trae CN\AI-Kart-Live\live_stream\main.py"},
-            {"name":"script_gen.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\live_stream\script_gen.py"},
-            {"name":"tts.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\live_stream\tts.py"},
-            {"name":"player.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\live_stream\player.py"},
+            {"name":"main.py","category":0,"tech":"生产者-消费者模式 · 调度入口","file":r"E:\Trae CN\AI-Kart-Live\live_stream\main.py"},
+            {"name":"script_gen.py","category":1,"tech":"DeepSeek · 口播话术生成","file":r"E:\Trae CN\AI-Kart-Live\live_stream\script_gen.py"},
+            {"name":"tts.py","category":1,"tech":"edge-tts · 多音色轮换","file":r"E:\Trae CN\AI-Kart-Live\live_stream\tts.py"},
+            {"name":"player.py","category":1,"tech":"pygame · 无缝音频播放","file":r"E:\Trae CN\AI-Kart-Live\live_stream\player.py"},
         ],
         "links": [
             {"source":"main.py","target":"script_gen.py"},
@@ -371,13 +332,13 @@ GRAPH_DATA = {
     },
     "knowledge-assistant": {
         "nodes": [
-            {"name":"server.py","category":0,"file":r"E:\Trae CN\AI-Kart-Live\knowledge-assistant\server.py"},
-            {"name":"index.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\knowledge-assistant\index.py"},
-            {"name":"rag_engine.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\knowledge-assistant\rag_engine.py"},
-            {"name":"generate_explanation.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\knowledge-assistant\generate_explanation.py"},
-            {"name":"chat.html","category":1,"file":""},
-            {"name":"reader.html","category":1,"file":""},
-            {"name":"notebook.html","category":1,"file":""},
+            {"name":"server.py","category":0,"tech":"FastAPI · Web 服务 · 路由","file":r"E:\Trae CN\AI-Kart-Live\knowledge-assistant\server.py"},
+            {"name":"index.py","category":1,"tech":"ChromaDB · 向量索引 · 切片","file":r"E:\Trae CN\AI-Kart-Live\knowledge-assistant\index.py"},
+            {"name":"rag_engine.py","category":1,"tech":"RAG 引擎 · DeepSeek · 对话记忆","file":r"E:\Trae CN\AI-Kart-Live\knowledge-assistant\rag_engine.py"},
+            {"name":"generate_explanation.py","category":1,"tech":"DeepSeek · 讲解预生成","file":r"E:\Trae CN\AI-Kart-Live\knowledge-assistant\generate_explanation.py"},
+            {"name":"chat.html","category":1,"tech":"ECharts 力导向图 · Jinja2","file":r"E:\Trae CN\AI-Kart-Live\knowledge-assistant\templates\chat.html"},
+            {"name":"reader.html","category":1,"tech":"代码阅读器 · 逐行讲解联动","file":r"E:\Trae CN\AI-Kart-Live\knowledge-assistant\templates\reader.html"},
+            {"name":"notebook.html","category":1,"tech":"笔记系统 · localStorage","file":r"E:\Trae CN\AI-Kart-Live\knowledge-assistant\templates\notebook.html"},
         ],
         "links": [
             {"source":"server.py","target":"rag_engine.py"},
@@ -388,17 +349,33 @@ GRAPH_DATA = {
             {"source":"generate_explanation.py","target":"rag_engine.py"},
         ]
     },
+    "内网培训系统demo": {
+        "nodes": [
+            {"name":"server.py","category":0,"tech":"FastAPI · QR登录 · RBAC · PyInstaller","file":r"E:\Trae CN\AI-Kart-Live\内网培训系统demo\server.py"},
+            {"name":"database.py","category":1,"tech":"SQLAlchemy · SQLite · bcrypt","file":r"E:\Trae CN\AI-Kart-Live\内网培训系统demo\database.py"},
+            {"name":"login.html","category":1,"tech":"QR码扫码 · 双向确认","file":r"E:\Trae CN\AI-Kart-Live\内网培训系统demo	emplates\login.html"},
+            {"name":"admin_dashboard.html","category":1,"tech":"管理后台 · 数据总览","file":r"E:\Trae CN\AI-Kart-Live\内网培训系统demo	emplatesdmin_dashboard.html"},
+            {"name":"study.html","category":1,"tech":"学习页面 · 断点续学","file":r"E:\Trae CN\AI-Kart-Live\内网培训系统demo	emplates\study.html"},
+            {"name":"quiz.html","category":1,"tech":"题库考试 · 自动判分","file":r"E:\Trae CN\AI-Kart-Live\内网培训系统demo	emplates\quiz.html"},
+            {"name":"base.html","category":2,"tech":"Jinja2 基础模板","file":r"E:\Trae CN\AI-Kart-Live\内网培训系统demo	emplatesase.html"},
+            {"name":"main.js","category":2,"tech":"前端交互逻辑","file":r"E:\Trae CN\AI-Kart-Live\内网培训系统demo\static\js\main.js"},
+            {"name":"style.css","category":2,"tech":"全局样式","file":r"E:\Trae CN\AI-Kart-Live\内网培训系统demo\static\css\style.css"},
+        ],
+        "links": [
+            {"source":"server.py","target":"database.py"},
+            {"source":"server.py","target":"login.html"},
+            {"source":"server.py","target":"admin_dashboard.html"},
+            {"source":"server.py","target":"study.html"},
+            {"source":"server.py","target":"quiz.html"},
+            {"source":"login.html","target":"base.html"},
+            {"source":"admin_dashboard.html","target":"base.html"},
+            {"source":"study.html","target":"base.html"},
+            {"source":"quiz.html","target":"base.html"},
+            {"source":"base.html","target":"main.js"},
+            {"source":"base.html","target":"style.css"},
+        ]
+    },
 }
-
-@app.get("/arch", response_class=HTMLResponse)
-async def arch_page(request: Request):
-    project = request.query_params.get("project", "pos_daily_report")
-    import json as _json
-    graph = GRAPH_DATA.get(project, {"nodes":[],"links":[]})
-    return HTMLResponse(jinja_env.get_template("arch.html").render(
-        request=request, active=project, projects=list(GRAPH_DATA.keys()),
-        graph_json=_json.dumps(graph, ensure_ascii=False)))
-
 
 if __name__ == "__main__":
     import uvicorn

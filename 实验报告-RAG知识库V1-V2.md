@@ -369,18 +369,72 @@ V3 需求：Shift/Ctrl 多选 + 书签 + 独立按钮 + 路径编码修复
 
 ---
 
-## 十三、V3.3+ 计划
+## 十三、V3.3 力导向图改进（2026年7月14日）
+
+### 13.1 需求
+
+用户反馈四个问题：
+1. 项目文件依赖图悬停节点不显示技术栈
+2. 从阅读模式点"← 返回"直接跳到顶层总览，而不是回到该项目依赖图
+3. 灰色节点（category 2，配置文件等）点进去没有预生成讲解
+4. JS 文件也需要生成讲解
+
+### 13.2 改动清单
+
+| 文件 | 改动 |
+|------|------|
+| `server.py` GRAPH_DATA | 36 个节点全部加 `tech` 字段；rfm_report 补 charts.js/config.js/rfm.js 三个缺失节点；补全 echarts.min.js/chat.html/reader.html/notebook.html 的空 `file` 路径 |
+| `templates/chat.html` | `goBack()` 直接调 `showMain()`；`showProject()` 深拷贝节点防污染原数据；初始化去掉 sessionStorage 回退，`/` 永远显示总览；顶层图和项目图统一 tooltip 格式 |
+| `templates/reader.html` | 返回链接从 `<a href="/">` 改为 `<a href="/?project={{ project }}">`，配合 URL 参数恢复项目依赖图 |
+| `generate_explanation.py` | 按扩展名自适应 prompt（.py/.js/.html/.css/.yaml/.json/.md/.txt 八种），非代码文件跳过 functions 字段 |
+
+### 13.3 踩坑
+
+| # | 问题 | 原因 | 解决 | 耗时 |
+|:--:|------|------|------|:--:|
+| 18 | `goBack()` 点"返回总览"始终跳回项目图 | 函数逻辑反了——查到 `drillProj` 存在就调 `showProject(proj)`，死循环在项目视图 | 改为直接 `showMain()`，清除 sessionStorage | 5min |
+| 19 | 首页 `/` 显示 knowledge-assistant 依赖图而非总览 | init 逻辑在 URL 无参数时 fallback 到 sessionStorage，旧值残留 | 去掉 sessionStorage 回退，`/` 永远显示总览；URL 参数 `?project=` 来自 reader 返回链接，才是正确的恢复入口 | 10min |
+| 20 | `window.open` 打开 reader 但 sessionStorage 不共享 | 新标签页有独立 sessionStorage，`drillProj` 在原标签页 | reader 返回链接显式传 `?project=` 参数，不再依赖 sessionStorage | 5min |
+| 21 | Edit 工具反复报"String to replace not found" | 文件用 tab 缩进？空格？换行 `\r\n` vs `\n`？实际是 2-space 缩进 + `\n`，但工具传入的字符串缩进不匹配 | 用 Python `assert old in content` 精确验证后再 replace，每条必过断言 | 15min |
+| 22 | 代码改完但页面不生效 | 旧 Python 进程占着 8002 端口，`pkill` 杀不掉 Windows 进程 | `netstat -ano | grep 8002` 找到 PID → `taskkill /F /PID xxx` 强杀 → 重启 | 10min |
+| 23 | `p.data.tech` 在项目依赖图 tooltip 不显示 | 不是 tooltip 写错，是根本进不去项目依赖图（bug #18 和 #19 导致无法正常下钻），测试全在错误视图里兜圈 | 先修导航 bug，tech tooltip 自然生效 | 连带修复 |
+| 24 | `showProject()` 的 `forEach` 直接改原 ARCH_DATA 节点 | 第一次进项目图正常，多次进出后节点对象的 symbolSize/itemStyle/label 被反复覆写 | 改为 `data.nodes.map()` 浅拷贝每个节点再设置样式，不污染原数据 | 5min |
+
+### 13.4 技术关键点
+
+**深拷贝 vs 原数据污染：** showProject 之前用 `data.nodes.forEach(function(n) { n.symbolSize = ... })` 直接在 GRAPH_DATA 原对象上改属性。多次进出不同项目图后，原数据被反复篡改。改为 `var nodes = data.nodes.map(function(n) { var copy = {}; for (var k in n) copy[k] = n[k]; ...; return copy; })` 每次生成全新副本。
+
+**sessionStorage 的双面性：** 同一个标签页内 sessionStorage 方便恢复状态，但新标签页（`window.open`）有独立存储。跨页面状态传递必须走 URL 参数，不能依赖 sessionStorage。
+
+**进程残留的排查链：** `pkill -f python` → 不管用 → `netstat -ano | grep 8002` → 找到 PID → `taskkill /F /PID xxx` → 确认端口释放 → 重启。Windows 上杀进程不能只靠名字匹配。
+
+### 13.5 效果验证
+
+```
+全部项目总览：6 节点悬停显示技术栈 ✓
+项目依赖图：36 节点悬停显示技术栈 ✓
+reader 返回：带 ?project= 参数 → 回到该项目依赖图 ✓
+返回总览：清除 sessionStorage → 顶层总览 ✓
+灰色节点：全部可点击进入阅读模式 ✓
+JS 讲解：generate_explanation.py 支持 8 种格式 ✓
+```
+
+---
+
+## 十四、V3.3+ 计划
 
 | 升级 | 说明 |
 |------|------|
 | 千问 Qwen3-Embedding | 面试前换，面试加分 |
 | 移动端 PWA | 手机保存到桌面，像 App 一样用 |
 | MD 文件渲染 | 文档模式支持 Markdown 格式渲染 |
+| 内网培训项目补进 GRAPH_DATA | 目前 5/6 项目有依赖图，差一个 |
 
 ---
 
-> 📅 实验日期：2026年7月12-13日
+> 📅 实验日期：2026年7月12-14日
 > 📌 最终结论：**RAG 搜碎片，导师读全文，阅读翻预生成——三模式互补，覆盖所有学习场景。**
 > 💡 最大教训：行号让 AI 自己数是靠不住的。给数据打标签比期待 AI 聪明更可靠。
 > 📌 V1→V2 核心结论：**中文模型是检索质量跃升的关键，多模型统一架构是可持续迭代的基础。**
 > 💡 最大的坑：不要假设 API 存在，不要硬编码路径到 C 盘，不要让历史代码污染当前目录。
+> 🔧 V3.3 新教训：**sessionStorage 不跨标签页，跨页面状态传递靠 URL 参数；Windows 杀进程不能只靠 pkill；先确认导航链路通畅再测功能，否则全在错误视图里白测。**

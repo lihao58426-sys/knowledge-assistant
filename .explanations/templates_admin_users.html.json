@@ -1,0 +1,123 @@
+{
+  "tech_stack": [
+    "Flask",
+    "Jinja2",
+    "HTML",
+    "CSS",
+    "JavaScript"
+  ],
+  "outline": [
+    {
+      "title": "模板继承与页面标题 (L1-L2)",
+      "line": 1
+    },
+    {
+      "title": "内容块开始与容器 (L4-L6)",
+      "line": 4
+    },
+    {
+      "title": "创建用户表单 (L8-L47)",
+      "line": 8
+    },
+    {
+      "title": "用户列表展示 (L49-L88)",
+      "line": 49
+    },
+    {
+      "title": "内容块结束 (L90)",
+      "line": 90
+    },
+    {
+      "title": "额外脚本块开始 (L92-L93)",
+      "line": 92
+    },
+    {
+      "title": "addUser 函数 (L94-L129)",
+      "line": 94
+    },
+    {
+      "title": "deleteUser 函数 (L131-L144)",
+      "line": 131
+    },
+    {
+      "title": "showMsg 辅助函数 (L146-L150)",
+      "line": 146
+    },
+    {
+      "title": "脚本块结束 (L152)",
+      "line": 152
+    }
+  ],
+  "functions": [
+    {
+      "name": "addUser",
+      "line": 94,
+      "summary": "收集表单数据并异步发送POST请求创建用户",
+      "detail": "从表单获取姓名、账号、密码、部门、角色，验证必填项和密码长度。构建FormData对象，通过XMLHttpRequest发送POST请求到/api/admin/user/add，根据响应显示消息并刷新页面。"
+    },
+    {
+      "name": "deleteUser",
+      "line": 131,
+      "summary": "确认后异步发送DELETE请求删除用户",
+      "detail": "弹出确认对话框，用户确认后发送DELETE请求到/api/admin/user/{id}，成功则刷新页面，失败则弹出错误消息。"
+    },
+    {
+      "name": "showMsg",
+      "line": 146,
+      "summary": "在页面中显示提示消息",
+      "detail": "获取id为user-msg的元素，设置其文本内容和CSS类名以显示成功或错误消息。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 1,
+      "end": 1,
+      "text": "继承base.html模板，复用整体布局。"
+    },
+    {
+      "start": 5,
+      "end": 6,
+      "text": "页面容器和标题，标明超级管理员专用。"
+    },
+    {
+      "start": 11,
+      "end": 46,
+      "text": "创建用户的表单，包含姓名、账号、密码、部门、角色输入和提交按钮。"
+    },
+    {
+      "start": 51,
+      "end": 87,
+      "text": "用户列表表格，循环显示所有用户，包含ID、姓名、账号、部门、角色、创建时间和操作按钮。"
+    },
+    {
+      "start": 65,
+      "end": 85,
+      "text": "Jinja2循环遍历users，渲染每行数据，角色显示为不同样式，当前用户不可删除。"
+    },
+    {
+      "start": 94,
+      "end": 129,
+      "text": "addUser函数：获取表单值，验证非空和密码长度，构造FormData，异步POST到后端，处理响应。"
+    },
+    {
+      "start": 101,
+      "end": 108,
+      "text": "前端验证：姓名、账号、密码必填，密码至少6位。"
+    },
+    {
+      "start": 117,
+      "end": 128,
+      "text": "使用XMLHttpRequest发送异步请求，成功则显示消息并刷新页面，失败显示错误。"
+    },
+    {
+      "start": 131,
+      "end": 144,
+      "text": "deleteUser函数：确认后异步DELETE请求删除用户，成功刷新页面。"
+    },
+    {
+      "start": 146,
+      "end": 150,
+      "text": "showMsg辅助函数：更新页面内消息元素的文本和样式。"
+    }
+  ]
+}

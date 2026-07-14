@@ -1,0 +1,86 @@
+{
+  "tech_stack": [
+    "Jinja2",
+    "JavaScript"
+  ],
+  "outline": [
+    {
+      "title": "模板继承与标题 (L1-L3)",
+      "line": 1
+    },
+    {
+      "title": "报表工具栏 (L5-L12)",
+      "line": 5
+    },
+    {
+      "title": "报表标题区 (L14-L18)",
+      "line": 14
+    },
+    {
+      "title": "报表表格表头 (L20-L32)",
+      "line": 20
+    },
+    {
+      "title": "报表表格数据行 (L33-L60)",
+      "line": 33
+    },
+    {
+      "title": "模板结束 (L64)",
+      "line": 64
+    },
+    {
+      "title": "JavaScript 脚本块 (L66-L98)",
+      "line": 66
+    }
+  ],
+  "functions": [
+    {
+      "name": "exportCSV",
+      "line": 70,
+      "summary": "导出报表为CSV文件",
+      "detail": "遍历表格行，收集每列文本，拼接成CSV格式。使用Blob创建文件并触发下载，文件名包含当前日期。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 1,
+      "end": 1,
+      "text": "继承base.html模板，复用整体布局。"
+    },
+    {
+      "start": 9,
+      "end": 10,
+      "text": "打印和导出CSV按钮，绑定JavaScript函数。"
+    },
+    {
+      "start": 17,
+      "end": 17,
+      "text": "显示导出时间，由JavaScript动态填充。"
+    },
+    {
+      "start": 34,
+      "end": 59,
+      "text": "Jinja2循环遍历report数据，渲染每行每课程，处理无课程和考核状态。"
+    },
+    {
+      "start": 68,
+      "end": 68,
+      "text": "设置报表导出时间为当前时间。"
+    },
+    {
+      "start": 70,
+      "end": 96,
+      "text": "exportCSV函数：遍历表格行，收集数据，生成CSV并触发下载。"
+    },
+    {
+      "start": 80,
+      "end": 81,
+      "text": "转义逗号并用引号包裹每个字段，避免CSV格式错误。"
+    },
+    {
+      "start": 87,
+      "end": 87,
+      "text": "添加BOM头确保Excel正确识别UTF-8编码。"
+    }
+  ]
+}

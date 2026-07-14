@@ -1,0 +1,106 @@
+{
+  "tech_stack": [
+    "Jinja2",
+    "JavaScript"
+  ],
+  "outline": [
+    {
+      "title": "模板继承与页面标题 (L1-L2)",
+      "line": 1
+    },
+    {
+      "title": "考核页面头部 (L5-L10)",
+      "line": 5
+    },
+    {
+      "title": "题目列表渲染 (L12-L61)",
+      "line": 12
+    },
+    {
+      "title": "提交按钮区域 (L63-L69)",
+      "line": 63
+    },
+    {
+      "title": "结果弹窗 (L71-L81)",
+      "line": 71
+    },
+    {
+      "title": "JavaScript 脚本开始 (L84-L86)",
+      "line": 84
+    },
+    {
+      "title": "选项变更处理 (L88-L106)",
+      "line": 88
+    },
+    {
+      "title": "提交答卷逻辑 (L108-L147)",
+      "line": 108
+    },
+    {
+      "title": "显示结果 (L149-L178)",
+      "line": 149
+    },
+    {
+      "title": "关闭结果弹窗 (L180-L182)",
+      "line": 180
+    }
+  ],
+  "functions": [
+    {
+      "name": "onOptionChange",
+      "line": 88,
+      "summary": "处理选项选中高亮",
+      "detail": "根据题目类型（单选/多选/判断）高亮选中的选项。对于多选，遍历所有checkbox并添加selected类；对于单选或判断，直接定位对应label添加selected类。"
+    },
+    {
+      "name": "submitQuiz",
+      "line": 108,
+      "summary": "提交答卷并发送请求",
+      "detail": "检查所有题目是否已作答，未作答时给出确认提示。收集表单数据，通过AJAX POST请求提交到/api/quiz/submit，根据返回结果调用showResult或弹出错误。"
+    },
+    {
+      "name": "showResult",
+      "line": 149,
+      "summary": "显示考核结果弹窗",
+      "detail": "根据是否通过设置不同的标题、样式和按钮行为。通过时显示绿色成功卡片并跳转首页，未通过时显示警告卡片并跳转学习页面。"
+    },
+    {
+      "name": "closeResult",
+      "line": 180,
+      "summary": "关闭结果弹窗",
+      "detail": "隐藏结果覆盖层，重置显示状态。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 1,
+      "end": 2,
+      "text": "继承base.html模板并设置页面标题为课后考核加课程标题。"
+    },
+    {
+      "start": 14,
+      "end": 60,
+      "text": "循环渲染每道题目，根据题目类型显示单选/多选/判断题标签，并生成对应的选项输入框（radio或checkbox）。"
+    },
+    {
+      "start": 88,
+      "end": 106,
+      "text": "onOptionChange函数：清除当前题目所有选项的高亮，然后根据题目类型重新高亮选中的选项。多选时遍历所有checkbox，单选/判断时直接定位选中项。"
+    },
+    {
+      "start": 108,
+      "end": 147,
+      "text": "submitQuiz函数：先检查所有题目是否已作答，未作答时标记并询问是否继续。然后收集表单数据，通过AJAX POST提交到后端API，处理返回结果。"
+    },
+    {
+      "start": 149,
+      "end": 178,
+      "text": "showResult函数：根据后端返回的passed字段显示通过或未通过的结果卡片，设置分数、详情、按钮文本和跳转链接。"
+    },
+    {
+      "start": 180,
+      "end": 182,
+      "text": "closeResult函数：隐藏结果弹窗覆盖层。"
+    }
+  ]
+}
