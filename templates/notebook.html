@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>笔记本</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh}
+.header{background:#1e293b;padding:12px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #334155}
+.header a{color:#94a3b8;text-decoration:none;font-size:14px}
+.header h1{font-size:17px;flex:1}
+.wrap{max-width:800px;margin:0 auto;padding:24px 16px}
+.proj-card{background:#1e293b;border-radius:12px;padding:16px 20px;margin-bottom:12px;cursor:pointer;border:1px solid #334155;transition:all .15s}
+.proj-card:hover{background:#1a2236;border-color:#4f46e5}
+.proj-card h3{font-size:16px;margin-bottom:4px}
+.proj-card .meta{font-size:12px;color:#64748b}
+.file-card{background:#111827;border-radius:10px;padding:14px 18px;margin-bottom:8px;cursor:pointer;border-left:3px solid #4f46e5;transition:all .15s}
+.file-card:hover{background:#1a2236}
+.file-card h4{font-size:14px;margin-bottom:4px;display:flex;justify-content:space-between}
+.note-card{background:#0a0f1a;border-radius:10px;padding:14px 18px;margin-bottom:10px;border:1px solid #1e293b;line-height:1.7}
+.note-card .nl{color:#f59e0b;font-weight:700;font-size:14px;margin-bottom:6px}
+.note-card .nc{color:#cbd5e1;font-size:13px;white-space:pre-wrap;margin:8px 0}
+.note-card .ncode{background:#000;color:#94a3b8;font-family:monospace;font-size:11px;padding:10px;border-radius:6px;margin:8px 0;white-space:pre-wrap;max-height:150px;overflow-y:auto}
+.note-card .nfoot{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#475569;margin-top:8px}
+.note-card .nfoot button{background:#4f46e5;color:#fff;border:none;padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;margin-left:8px}
+.back-btn{color:#4f46e5;font-size:14px;cursor:pointer;margin-bottom:16px;display:inline-block}
+.empty{text-align:center;color:#64748b;padding:60px 20px;font-size:14px}
+</style>
+</head>
+<body>
+<div class="header">
+  <a href="/">← 首页</a>
+  <h1>📒 笔记本</h1>
+  <span style="font-size:13px;color:#64748b" id="totalCount">0 条笔记</span>
+</div>
+<div class="wrap" id="content">
+  <div class="empty">加载中...</div>
+</div>
+<script>
+const PROJECTS = ['pos_daily_report','rfm_report','auto_video','live_stream','内网培训系统demo','knowledge-assistant'];
+let allNotes = [];
+let view = 'projects'; // projects | project | file
+
+function loadAllNotes() {
+  allNotes = [];
+  for (let i=0; i<localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (!key || !key.startsWith('readerNotes_')) continue;
+    try {
+      const items = JSON.parse(localStorage.getItem(key));
+      if (Array.isArray(items)) {
+        const fp = key.replace('readerNotes_','');
+        items.forEach(n => { n._file = fp; allNotes.push(n); });
+      }
+    } catch(e) {}
+  }
+  document.getElementById('totalCount').textContent = allNotes.length + ' 条笔记';
+}
+
+function getProject(fp) {
+  for (const p of PROJECTS) { if (fp.includes(p.replace(/-/g,''))) return p; }
+  return '其他';
+}
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function renderProjects() {
+  view = 'projects';
+  const projects = {};
+  allNotes.forEach(n => { const p = getProject(n._file); projects[p] = (projects[p]||0)+1; });
+  const projNames = Object.keys(projects).sort();
+  if (projNames.length === 0) {
+    document.getElementById('content').innerHTML = '<div class="empty">暂无笔记<br><br>在阅读模式中选中代码行，点"+ 记笔记"即可开始</div>';
+    return;
+  }
+  document.getElementById('content').innerHTML = projNames.map(p =>
+    '<div class="proj-card" onclick="renderProject(\''+p+'\')">'
+    + '<h3>📁 '+esc(p)+'</h3>'
+    + '<div class="meta">'+projects[p]+' 条笔记</div></div>'
+  ).join('');
+}
+
+function renderProject(proj) {
+  view = 'project';
+  const files = {};
+  allNotes.filter(n => getProject(n._file) === proj).forEach(n => {
+    const fn = n._file.replace(/\\/g,'/').split('/').pop();
+    if (!files[fn]) files[fn] = {notes:[], path: n._file};
+    files[fn].notes.push(n);
+  });
+  document.getElementById('content').innerHTML =
+    '<div class="back-btn" onclick="renderProjects()">← 所有项目</div>'
+    + '<h2 style="margin-bottom:16px">📁 '+esc(proj)+'</h2>'
+    + Object.entries(files).sort().map(([fn, fdata]) =>
+      '<div class="file-card" onclick="renderFile(\''+fdata.path+'\',\''+fn+'\')">'
+      + '<h4>📄 '+esc(fn)+' <span style="color:#64748b;font-size:12px">'+fdata.notes.length+' 条</span></h4>'
+      + '</div>'
+    ).join('');
+}
+
+function renderFile(fp, fname) {
+  view = 'file';
+  const notes = allNotes.filter(n => n._file === fp);
+  document.getElementById('content').innerHTML =
+    '<div class="back-btn" onclick="renderProject(\''+getProject(fp)+'\')">← 返回项目</div>'
+    + '<h2 style="margin-bottom:16px">📄 '+esc(fname)+' ('+notes.length+' 条)</h2>'
+    + notes.map(n =>
+      '<div class="note-card">'
+      + '<div class="nl">📝 '+esc(n.label)+' <span style="color:#818cf8;font-size:11px">L'+n.start+'-L'+n.end+'</span></div>'
+      + (n.code ? '<div class="ncode">'+esc(n.code)+'</div>' : '')
+      + '<div class="nc">'+esc(n.content)+'</div>'
+      + '<div class="nfoot"><span>'+n.date+'</span>'
+      + '<span><button onclick="event.stopPropagation();aiExpand('+n.id+')">🤖 AI展开</button>'
+      + '<button onclick="event.stopPropagation();deleteNoteById('+n.id+')" style="background:#ef4444">删除</button></span></div></div>'
+    ).join('');
+}
+
+async function aiExpand(noteId) {
+  const note = allNotes.find(n => n.id === noteId);
+  if (!note) return;
+  const btn = event.target; btn.textContent = '⏳'; btn.disabled = true;
+  try {
+    const form = new FormData();
+    form.append('file', note._file);
+    form.append('question', '请把下面这段笔记扩展成一篇知识文档（300-500字），要有：标题、原理、项目中的实际应用、代码示例位置。只输出文档正文。\\n笔记内容：' + note.content);
+    const resp = await fetch('/code-tutor/explain', {method:'POST', body:form});
+    const data = await resp.json();
+    if (data.answer) {
+      const blob = new Blob([data.answer], {type:'text/markdown'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'AI扩展_'+note.label.replace(/[^\\w]/g,'_')+'.md';
+      a.click();
+      alert('已下载为 MD 文件，可放入 TO DO 文件夹');
+    }
+  } catch(e) { alert('扩展失败: '+e.message); }
+  btn.textContent = '🤖 AI展开'; btn.disabled = false;
+}
+
+function deleteNoteById(id) {
+  const note = allNotes.find(n => n.id === id);
+  if (!note) return;
+  const key = 'readerNotes_'+note._file;
+  const items = JSON.parse(localStorage.getItem(key)||'[]');
+  localStorage.setItem(key, JSON.stringify(items.filter(n => n.id !== id)));
+  loadAllNotes();
+  if (view === 'projects') renderProjects();
+  else if (view === 'project') renderProject(getProject(note._file));
+  else renderFile(note._file, note._file.replace(/\\/g,'/').split('/').pop());
+}
+
+loadAllNotes();
+renderProjects();
+</script>
+</body>
+</html>

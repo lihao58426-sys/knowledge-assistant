@@ -52,9 +52,11 @@
     {% endfor %}
   </div>
   <div class="mode-bar">
-    <a href="/?project={{ active_project or '' }}&mode=search" class="mode-btn {% if mode!='tutor' and mode!='docs' %}active{% endif %}">🔍 搜索提问</a>
-    <a href="/?project={{ active_project or '' }}&mode=tutor" class="mode-btn {% if mode=='tutor' %}active{% endif %}">🎓 导师模式</a>
+    <a href="/?project={{ active_project or '' }}&mode=search" class="mode-btn {% if mode!='tutor' and mode!='docs' %}active{% endif %}">🔍 搜索</a>
+    <a href="/?project={{ active_project or '' }}&mode=tutor" class="mode-btn {% if mode=='tutor' %}active{% endif %}">🎓 导师</a>
     <a href="/?mode=docs" class="mode-btn {% if mode=='docs' %}active{% endif %}">📄 文档</a>
+    <a href="/notebook" class="mode-btn">📒 笔记</a>
+    <a href="/arch" class="mode-btn">🗂️ 架构</a>
   </div>
 </div>
 

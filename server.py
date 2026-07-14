@@ -3,8 +3,11 @@
 用法：python server.py → http://localhost:8002
 """
 
+import os
+
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from jinja2 import Environment, FileSystemLoader
 
 from rag_engine import ask, get_session
@@ -12,6 +15,9 @@ from rag_engine import ask, get_session
 from urllib.parse import quote as urlencode
 
 app = FastAPI(title="知识库助手")
+if not os.path.exists("static"):
+    os.makedirs("static", exist_ok=True)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 jinja_env = Environment(loader=FileSystemLoader("templates"))
 jinja_env.filters["urlencode"] = urlencode
 
@@ -272,6 +278,126 @@ async def code_tutor_explain(request: Request):
     answer = resp.json()["choices"][0]["message"]["content"].strip()
 
     return HTMLResponse(_json.dumps({"answer": answer}, ensure_ascii=False), media_type="application/json")
+
+
+@app.get("/notebook", response_class=HTMLResponse)
+async def notebook_page(request: Request):
+    """笔记本页面 — 分项目/分文件查看所有笔记"""
+    return HTMLResponse(jinja_env.get_template("notebook.html").render(request=request))
+
+
+# ── 架构图 ──
+
+# 每个项目的文件依赖关系（nodes=节点, links=连线）
+GRAPH_DATA = {
+    "pos_daily_report": {
+        "nodes": [
+            {"name":"main.py","category":0,"file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\main.py"},
+            {"name":"config.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\config.py"},
+            {"name":"crawler.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\crawler.py"},
+            {"name":"models.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\models.py"},
+            {"name":"database.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\database.py"},
+            {"name":"report.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\report.py"},
+            {"name":"pusher.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\pusher.py"},
+            {"name":"exceptions.py","category":2,"file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\exceptions.py"},
+            {"name":"config.yaml","category":2,"file":r"E:\Trae CN\AI-Kart-Live\pos_daily_report\config.yaml"},
+        ],
+        "links": [
+            {"source":"main.py","target":"config.py"},
+            {"source":"main.py","target":"crawler.py"},
+            {"source":"main.py","target":"models.py"},
+            {"source":"main.py","target":"database.py"},
+            {"source":"main.py","target":"report.py"},
+            {"source":"main.py","target":"pusher.py"},
+            {"source":"crawler.py","target":"config.py"},
+            {"source":"crawler.py","target":"exceptions.py"},
+            {"source":"database.py","target":"models.py"},
+            {"source":"report.py","target":"models.py"},
+            {"source":"config.py","target":"config.yaml"},
+        ]
+    },
+    "rfm_report": {
+        "nodes": [
+            {"name":"server.py","category":0,"file":r"E:\Trae CN\AI-Kart-Live\rfm_report\server.py"},
+            {"name":"analysis.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\rfm_report\analysis.py"},
+            {"name":"upload.html","category":1,"file":r"E:\Trae CN\AI-Kart-Live\rfm_report\templates\upload.html"},
+            {"name":"report.html","category":1,"file":r"E:\Trae CN\AI-Kart-Live\rfm_report\templates\report.html"},
+            {"name":"echarts.min.js","category":2,"file":""},
+        ],
+        "links": [
+            {"source":"server.py","target":"analysis.py"},
+            {"source":"server.py","target":"upload.html"},
+            {"source":"server.py","target":"report.html"},
+            {"source":"report.html","target":"echarts.min.js"},
+        ]
+    },
+    "auto_video": {
+        "nodes": [
+            {"name":"main.py","category":0,"file":r"E:\Trae CN\AI-Kart-Live\auto_video\main.py"},
+            {"name":"config.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\auto_video\config.py"},
+            {"name":"platforms.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\auto_video\platforms.py"},
+            {"name":"materials.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\auto_video\materials.py"},
+            {"name":"script_gen.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\auto_video\script_gen.py"},
+            {"name":"voice.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\auto_video\voice.py"},
+            {"name":"scenes.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\auto_video\scenes.py"},
+            {"name":"compose.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\auto_video\compose.py"},
+        ],
+        "links": [
+            {"source":"main.py","target":"config.py"},
+            {"source":"main.py","target":"platforms.py"},
+            {"source":"main.py","target":"materials.py"},
+            {"source":"main.py","target":"script_gen.py"},
+            {"source":"main.py","target":"voice.py"},
+            {"source":"main.py","target":"compose.py"},
+            {"source":"compose.py","target":"scenes.py"},
+            {"source":"scenes.py","target":"config.py"},
+            {"source":"voice.py","target":"config.py"},
+            {"source":"materials.py","target":"config.py"},
+            {"source":"script_gen.py","target":"config.py"},
+        ]
+    },
+    "live_stream": {
+        "nodes": [
+            {"name":"main.py","category":0,"file":r"E:\Trae CN\AI-Kart-Live\live_stream\main.py"},
+            {"name":"script_gen.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\live_stream\script_gen.py"},
+            {"name":"tts.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\live_stream\tts.py"},
+            {"name":"player.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\live_stream\player.py"},
+        ],
+        "links": [
+            {"source":"main.py","target":"script_gen.py"},
+            {"source":"main.py","target":"tts.py"},
+            {"source":"main.py","target":"player.py"},
+        ]
+    },
+    "knowledge-assistant": {
+        "nodes": [
+            {"name":"server.py","category":0,"file":r"E:\Trae CN\AI-Kart-Live\knowledge-assistant\server.py"},
+            {"name":"index.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\knowledge-assistant\index.py"},
+            {"name":"rag_engine.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\knowledge-assistant\rag_engine.py"},
+            {"name":"generate_explanation.py","category":1,"file":r"E:\Trae CN\AI-Kart-Live\knowledge-assistant\generate_explanation.py"},
+            {"name":"chat.html","category":1,"file":""},
+            {"name":"reader.html","category":1,"file":""},
+            {"name":"notebook.html","category":1,"file":""},
+        ],
+        "links": [
+            {"source":"server.py","target":"rag_engine.py"},
+            {"source":"server.py","target":"chat.html"},
+            {"source":"server.py","target":"reader.html"},
+            {"source":"server.py","target":"notebook.html"},
+            {"source":"rag_engine.py","target":"index.py"},
+            {"source":"generate_explanation.py","target":"rag_engine.py"},
+        ]
+    },
+}
+
+@app.get("/arch", response_class=HTMLResponse)
+async def arch_page(request: Request):
+    project = request.query_params.get("project", "pos_daily_report")
+    import json as _json
+    graph = GRAPH_DATA.get(project, {"nodes":[],"links":[]})
+    return HTMLResponse(jinja_env.get_template("arch.html").render(
+        request=request, active=project, projects=list(GRAPH_DATA.keys()),
+        graph_json=_json.dumps(graph, ensure_ascii=False)))
 
 
 if __name__ == "__main__":

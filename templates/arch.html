@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>项目架构图</title>
+<script src="/static/echarts.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh}
+.header{background:#1e293b;padding:12px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #334155}
+.header a{color:#94a3b8;text-decoration:none;font-size:14px}
+.header h1{font-size:17px;flex:1}
+.proj-bar{display:flex;gap:6px;padding:12px 20px;background:#1e293b;border-bottom:1px solid #334155;overflow-x:auto;flex-wrap:wrap}
+.proj-btn{padding:6px 14px;border-radius:8px;border:1.5px solid #334155;background:transparent;color:#94a3b8;cursor:pointer;font-size:13px;text-decoration:none;white-space:nowrap;font-weight:500}
+.proj-btn.active{background:#4f46e5;color:#fff;border-color:#4f46e5}
+.proj-btn:hover:not(.active){background:#1e293b}
+.legend{display:flex;gap:20px;padding:8px 20px;background:#1e293b;border-bottom:1px solid #334155;font-size:12px;color:#94a3b8}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+#chart{width:100%;height:calc(100vh - 135px)}
+</style>
+</head>
+<body>
+<div class="header">
+  <a href="/">← 首页</a>
+  <h1>🗂️ 项目架构图</h1>
+</div>
+<div class="proj-bar">
+  {% for p in projects %}
+  <a href="/arch?project={{ p }}" class="proj-btn {% if p==active %}active{% endif %}">{{ p }}</a>
+  {% endfor %}
+</div>
+<div class="legend">
+  <span><i class="dot" style="background:#f59e0b"></i> 入口文件</span>
+  <span><i class="dot" style="background:#4f46e5"></i> 功能模块</span>
+  <span><i class="dot" style="background:#334155"></i> 配置/依赖</span>
+  <span style="margin-left:auto;color:#64748b">点击节点打开文件 · 可拖拽</span>
+</div>
+<div id="chart"></div>
+
+<script>
+const DATA = {{ graph_json|safe }};
+if (DATA && DATA.nodes) {
+  const chart = echarts.init(document.getElementById('chart'));
+  // 给节点加颜色和大小
+  DATA.nodes.forEach(n => {
+    if (n.category === 0) { n.symbolSize = 40; n.itemStyle = {color:'#f59e0b'}; n.label = {show:true,fontSize:13,color:'#e2e8f0'}; }
+    else if (n.category === 1) { n.symbolSize = 28; n.itemStyle = {color:'#4f46e5'}; n.label = {show:true,fontSize:11,color:'#94a3b8'}; }
+    else { n.symbolSize = 20; n.itemStyle = {color:'#334155'}; n.label = {show:true,fontSize:10,color:'#64748b'}; }
+  });
+  DATA.links.forEach(l => { l.lineStyle = {color:'#334155',curveness:0.2}; });
+
+  chart.setOption({
+    tooltip: { formatter: function(p) { return p.dataType==='node' ? p.name : p.data.source+' → '+p.data.target; }},
+    series: [{
+      type: 'graph', layout: 'force', roam: true, draggable: true,
+      force: { repulsion: 300, edgeLength: [100, 300] },
+      data: DATA.nodes,
+      links: DATA.links,
+      categories: [{name:'入口'},{name:'模块'},{name:'配置'}]
+    }]
+  });
+
+  // 点击节点跳转阅读模式
+  chart.on('click', function(params) {
+    if (params.dataType === 'node' && params.data.file) {
+      const proj = new URLSearchParams(location.search).get('project') || '';
+      window.open('/reader?project='+proj+'&file='+encodeURIComponent(params.data.file));
+    }
+  });
+
+  window.addEventListener('resize', () => chart.resize());
+} else {
+  document.getElementById('chart').innerHTML = '<div style="text-align:center;padding:80px;color:#64748b">请选择一个项目</div>';
+}
+</script>
+</body>
+</html>
