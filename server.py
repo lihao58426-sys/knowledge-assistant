@@ -15,6 +15,29 @@ from rag_engine import ask, get_session
 
 from urllib.parse import quote as urlencode
 
+# ── 路径配置 ──
+# 工作区根目录 = 本文件所在目录的上一级（knowledge-assistant 住在工作区里面）。
+# 换电脑/上云后目录结构不同时，可用环境变量 KA_WORKSPACE_ROOT 手动指定，不用改代码。
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+WORKSPACE_ROOT = os.getenv("KA_WORKSPACE_ROOT", os.path.dirname(BASE_DIR))
+
+
+def safe_path(filepath: str) -> str | None:
+    """路径白名单校验：防任意文件读取。
+
+    把用户传来的路径解析成真实绝对路径（../ 等绕路手法会被展开），
+    然后检查它是否在工作区内。在 → 返回真实路径；不在 → 返回 None（调用方拒绝）。
+    """
+    if not filepath:
+        return None
+    real = os.path.realpath(filepath)
+    root = os.path.realpath(WORKSPACE_ROOT)
+    # normcase: Windows 路径不分大小写，统一后再比较，防止大小写绕过
+    if not os.path.normcase(real).startswith(os.path.normcase(root + os.sep)):
+        return None
+    return real
+
+
 app = FastAPI(title="知识库助手")
 if not os.path.exists("static"):
     os.makedirs("static", exist_ok=True)
@@ -43,7 +66,7 @@ async def home(request: Request):
     # 文档模式 — 加载 TO DO 文件夹
     doc_files = []
     if mode == "docs":
-        todo = r"E:/Trae CN/AI-Kart-Live/TO DO"
+        todo = os.path.join(WORKSPACE_ROOT, "TO DO")
         if os.path.exists(todo):
             for f in sorted(os.listdir(todo)):
                 if f.endswith(".md"):
@@ -79,7 +102,7 @@ async def api_ask(request: Request):
 async def reader_page(request: Request):
     """阅读模式 — 预生成讲解 + 目录跳转 + 双向联动"""
     project = request.query_params.get("project", "")
-    filepath = request.query_params.get("file", "")
+    filepath = safe_path(request.query_params.get("file", ""))  # 白名单校验，工作区外一律拒绝
     code_lines = []
     fname = ""
     has_explain = False
@@ -123,14 +146,10 @@ async def reader_page(request: Request):
 
 # ── 导师模式：读整个文件 → 发给 DeepSeek 讲解 ──
 
-PROJECT_ROOTS = {
-    "pos_daily_report": r"E:/Trae CN/AI-Kart-Live/pos_daily_report",
-    "rfm_report": r"E:/Trae CN/AI-Kart-Live/rfm_report",
-    "auto_video": r"E:/Trae CN/AI-Kart-Live/auto_video",
-    "live_stream": r"E:/Trae CN/AI-Kart-Live/live_stream",
-    "内网培训系统demo": r"E:/Trae CN/AI-Kart-Live/内网培训系统demo",
-    "knowledge-assistant": r"E:/Trae CN/AI-Kart-Live/knowledge-assistant",
-}
+# 六个项目的根目录，都挂在工作区下，按名字拼出来
+_PROJECT_NAMES = ["pos_daily_report", "rfm_report", "auto_video",
+                  "live_stream", "内网培训系统demo", "knowledge-assistant"]
+PROJECT_ROOTS = {name: os.path.join(WORKSPACE_ROOT, name) for name in _PROJECT_NAMES}
 
 @app.post("/tutor/explain", response_class=HTMLResponse)
 async def tutor_explain(request: Request):
@@ -150,10 +169,11 @@ async def tutor_explain(request: Request):
     if not filepaths:
         return HTMLResponse("<h2 style='padding:40px;text-align:center'>请至少选择一个文件</h2>")
 
-    # 读所有勾选的文件
+    # 读所有勾选的文件（safe_path 白名单校验，工作区外的路径直接跳过）
     codes = []
     for fp in filepaths:
-        if not os.path.exists(fp):
+        fp = safe_path(fp)
+        if not fp or not os.path.exists(fp):
             continue
         with open(fp, "r", encoding="utf-8") as f:
             content = f.read()
@@ -197,7 +217,7 @@ async def code_tutor_explain(request: Request):
     """逐行讲解 API"""
     import requests as _r
     form = await request.form()
-    filepath = form.get("file", "")
+    filepath = safe_path(form.get("file", ""))  # 白名单校验，工作区外一律拒绝
     question = form.get("question", "").strip()
     context = form.get("context", "")
 
@@ -243,18 +263,18 @@ async def notebook_page(request: Request):
 GRAPH_DATA = {
     "pos_daily_report": {
         "nodes": [
-            {"name":"main.py","category":0,"tech":"调度入口 · APScheduler · 自调度算法","file":r"E:/Trae CN/AI-Kart-Live/pos_daily_report/main.py"},
-            {"name":"config.py","category":1,"tech":"YAML 配置管理 · 多店支持","file":r"E:/Trae CN/AI-Kart-Live/pos_daily_report/config.py"},
-            {"name":"crawler.py","category":1,"tech":"Playwright · 反检测 · 自动登录","file":r"E:/Trae CN/AI-Kart-Live/pos_daily_report/crawler.py"},
-            {"name":"models.py","category":1,"tech":"dataclass · 类型定义","file":r"E:/Trae CN/AI-Kart-Live/pos_daily_report/models.py"},
-            {"name":"database.py","category":1,"tech":"SQLite · CRUD · 历史查询","file":r"E:/Trae CN/AI-Kart-Live/pos_daily_report/database.py"},
-            {"name":"report.py","category":1,"tech":"报告生成 · 环比计算","file":r"E:/Trae CN/AI-Kart-Live/pos_daily_report/report.py"},
-            {"name":"pusher.py","category":1,"tech":"企业微信 Webhook · Markdown","file":r"E:/Trae CN/AI-Kart-Live/pos_daily_report/pusher.py"},
-            {"name":"exceptions.py","category":2,"tech":"自定义异常类","file":r"E:/Trae CN/AI-Kart-Live/pos_daily_report/exceptions.py"},
-            {"name":"config.yaml","category":2,"tech":"多店铺配置数据","file":r"E:/Trae CN/AI-Kart-Live/pos_daily_report/config.yaml"},
-            {"name":"business_overview.html","category":2,"tech":"营业概况 · ECharts 仪表盘","file":r"E:/Trae CN/AI-Kart-Live/pos_daily_report/business_overview.html"},
-            {"name":"overview_page.html","category":2,"tech":"数据总览 · 多店对比","file":r"E:/Trae CN/AI-Kart-Live/pos_daily_report/overview_page.html"},
-            {"name":"product_sales.html","category":2,"tech":"商品销售排名 · 趋势图","file":r"E:/Trae CN/AI-Kart-Live/pos_daily_report/product_sales.html"},
+            {"name":"main.py","category":0,"tech":"调度入口 · APScheduler · 自调度算法","file":"pos_daily_report/main.py"},
+            {"name":"config.py","category":1,"tech":"YAML 配置管理 · 多店支持","file":"pos_daily_report/config.py"},
+            {"name":"crawler.py","category":1,"tech":"Playwright · 反检测 · 自动登录","file":"pos_daily_report/crawler.py"},
+            {"name":"models.py","category":1,"tech":"dataclass · 类型定义","file":"pos_daily_report/models.py"},
+            {"name":"database.py","category":1,"tech":"SQLite · CRUD · 历史查询","file":"pos_daily_report/database.py"},
+            {"name":"report.py","category":1,"tech":"报告生成 · 环比计算","file":"pos_daily_report/report.py"},
+            {"name":"pusher.py","category":1,"tech":"企业微信 Webhook · Markdown","file":"pos_daily_report/pusher.py"},
+            {"name":"exceptions.py","category":2,"tech":"自定义异常类","file":"pos_daily_report/exceptions.py"},
+            {"name":"config.yaml","category":2,"tech":"多店铺配置数据","file":"pos_daily_report/config.yaml"},
+            {"name":"business_overview.html","category":2,"tech":"营业概况 · ECharts 仪表盘","file":"pos_daily_report/business_overview.html"},
+            {"name":"overview_page.html","category":2,"tech":"数据总览 · 多店对比","file":"pos_daily_report/overview_page.html"},
+            {"name":"product_sales.html","category":2,"tech":"商品销售排名 · 趋势图","file":"pos_daily_report/product_sales.html"},
         ],
         "links": [
             {"source":"main.py","target":"config.py"},
@@ -275,14 +295,14 @@ GRAPH_DATA = {
     },
     "rfm_report": {
         "nodes": [
-            {"name":"server.py","category":0,"tech":"FastAPI · 路由 · 文件上传","file":r"E:/Trae CN/AI-Kart-Live/rfm_report/server.py"},
-            {"name":"analysis.py","category":1,"tech":"RFM 分群 · CLV · 留存曲线","file":r"E:/Trae CN/AI-Kart-Live/rfm_report/analysis.py"},
-            {"name":"charts.js","category":1,"tech":"ECharts 柱状图 · 饼图 · 折线图","file":r"E:/Trae CN/AI-Kart-Live/rfm_report/charts.js"},
-            {"name":"rfm.js","category":1,"tech":"RFM 计算 · 8类分群算法","file":r"E:/Trae CN/AI-Kart-Live/rfm_report/rfm.js"},
-            {"name":"config.js","category":1,"tech":"前端配置 · 图表颜色常量","file":r"E:/Trae CN/AI-Kart-Live/rfm_report/config.js"},
-            {"name":"upload.html","category":1,"tech":"CSV 上传 · Jinja2 模板","file":r"E:/Trae CN/AI-Kart-Live/rfm_report/templates/upload.html"},
-            {"name":"report.html","category":1,"tech":"分析报告 · ECharts 可视化","file":r"E:/Trae CN/AI-Kart-Live/rfm_report/templates/report.html"},
-            {"name":"echarts.min.js","category":2,"tech":"ECharts 图表库","file":r"E:/Trae CN/AI-Kart-Live/rfm_report/static/echarts.min.js"},
+            {"name":"server.py","category":0,"tech":"FastAPI · 路由 · 文件上传","file":"rfm_report/server.py"},
+            {"name":"analysis.py","category":1,"tech":"RFM 分群 · CLV · 留存曲线","file":"rfm_report/analysis.py"},
+            {"name":"charts.js","category":1,"tech":"ECharts 柱状图 · 饼图 · 折线图","file":"rfm_report/charts.js"},
+            {"name":"rfm.js","category":1,"tech":"RFM 计算 · 8类分群算法","file":"rfm_report/rfm.js"},
+            {"name":"config.js","category":1,"tech":"前端配置 · 图表颜色常量","file":"rfm_report/config.js"},
+            {"name":"upload.html","category":1,"tech":"CSV 上传 · Jinja2 模板","file":"rfm_report/templates/upload.html"},
+            {"name":"report.html","category":1,"tech":"分析报告 · ECharts 可视化","file":"rfm_report/templates/report.html"},
+            {"name":"echarts.min.js","category":2,"tech":"ECharts 图表库","file":"rfm_report/static/echarts.min.js"},
         ],
         "links": [
             {"source":"server.py","target":"analysis.py"},
@@ -299,14 +319,14 @@ GRAPH_DATA = {
     },
     "auto_video": {
         "nodes": [
-            {"name":"main.py","category":0,"tech":"流程编排入口","file":r"E:/Trae CN/AI-Kart-Live/auto_video/main.py"},
-            {"name":"config.py","category":1,"tech":"配置管理 · 三平台参数","file":r"E:/Trae CN/AI-Kart-Live/auto_video/config.py"},
-            {"name":"platforms.py","category":1,"tech":"抖音 · 小红书 · 视频号差异化","file":r"E:/Trae CN/AI-Kart-Live/auto_video/platforms.py"},
-            {"name":"materials.py","category":1,"tech":"Qwen VL · 素材扫描识别","file":r"E:/Trae CN/AI-Kart-Live/auto_video/materials.py"},
-            {"name":"script_gen.py","category":1,"tech":"DeepSeek · AI 脚本生成","file":r"E:/Trae CN/AI-Kart-Live/auto_video/script_gen.py"},
-            {"name":"voice.py","category":1,"tech":"edge-tts · 语音合成","file":r"E:/Trae CN/AI-Kart-Live/auto_video/voice.py"},
-            {"name":"scenes.py","category":1,"tech":"场景模板 · 转场效果","file":r"E:/Trae CN/AI-Kart-Live/auto_video/scenes.py"},
-            {"name":"compose.py","category":1,"tech":"FFmpeg · 视频合成","file":r"E:/Trae CN/AI-Kart-Live/auto_video/compose.py"},
+            {"name":"main.py","category":0,"tech":"流程编排入口","file":"auto_video/main.py"},
+            {"name":"config.py","category":1,"tech":"配置管理 · 三平台参数","file":"auto_video/config.py"},
+            {"name":"platforms.py","category":1,"tech":"抖音 · 小红书 · 视频号差异化","file":"auto_video/platforms.py"},
+            {"name":"materials.py","category":1,"tech":"Qwen VL · 素材扫描识别","file":"auto_video/materials.py"},
+            {"name":"script_gen.py","category":1,"tech":"DeepSeek · AI 脚本生成","file":"auto_video/script_gen.py"},
+            {"name":"voice.py","category":1,"tech":"edge-tts · 语音合成","file":"auto_video/voice.py"},
+            {"name":"scenes.py","category":1,"tech":"场景模板 · 转场效果","file":"auto_video/scenes.py"},
+            {"name":"compose.py","category":1,"tech":"FFmpeg · 视频合成","file":"auto_video/compose.py"},
         ],
         "links": [
             {"source":"main.py","target":"config.py"},
@@ -324,10 +344,10 @@ GRAPH_DATA = {
     },
     "live_stream": {
         "nodes": [
-            {"name":"main.py","category":0,"tech":"生产者-消费者模式 · 调度入口","file":r"E:/Trae CN/AI-Kart-Live/live_stream/main.py"},
-            {"name":"script_gen.py","category":1,"tech":"DeepSeek · 口播话术生成","file":r"E:/Trae CN/AI-Kart-Live/live_stream/script_gen.py"},
-            {"name":"tts.py","category":1,"tech":"edge-tts · 多音色轮换","file":r"E:/Trae CN/AI-Kart-Live/live_stream/tts.py"},
-            {"name":"player.py","category":1,"tech":"pygame · 无缝音频播放","file":r"E:/Trae CN/AI-Kart-Live/live_stream/player.py"},
+            {"name":"main.py","category":0,"tech":"生产者-消费者模式 · 调度入口","file":"live_stream/main.py"},
+            {"name":"script_gen.py","category":1,"tech":"DeepSeek · 口播话术生成","file":"live_stream/script_gen.py"},
+            {"name":"tts.py","category":1,"tech":"edge-tts · 多音色轮换","file":"live_stream/tts.py"},
+            {"name":"player.py","category":1,"tech":"pygame · 无缝音频播放","file":"live_stream/player.py"},
         ],
         "links": [
             {"source":"main.py","target":"script_gen.py"},
@@ -337,13 +357,13 @@ GRAPH_DATA = {
     },
     "knowledge-assistant": {
         "nodes": [
-            {"name":"server.py","category":0,"tech":"FastAPI · Web 服务 · 路由","file":r"E:/Trae CN/AI-Kart-Live/knowledge-assistant/server.py"},
-            {"name":"index.py","category":1,"tech":"ChromaDB · 向量索引 · 切片","file":r"E:/Trae CN/AI-Kart-Live/knowledge-assistant/index.py"},
-            {"name":"rag_engine.py","category":1,"tech":"RAG 引擎 · DeepSeek · 对话记忆","file":r"E:/Trae CN/AI-Kart-Live/knowledge-assistant/rag_engine.py"},
-            {"name":"generate_explanation.py","category":1,"tech":"DeepSeek · 讲解预生成","file":r"E:/Trae CN/AI-Kart-Live/knowledge-assistant/generate_explanation.py"},
-            {"name":"chat.html","category":1,"tech":"ECharts 力导向图 · Jinja2","file":r"E:/Trae CN/AI-Kart-Live/knowledge-assistant/templates/chat.html"},
-            {"name":"reader.html","category":1,"tech":"代码阅读器 · 逐行讲解联动","file":r"E:/Trae CN/AI-Kart-Live/knowledge-assistant/templates/reader.html"},
-            {"name":"notebook.html","category":1,"tech":"笔记系统 · localStorage","file":r"E:/Trae CN/AI-Kart-Live/knowledge-assistant/templates/notebook.html"},
+            {"name":"server.py","category":0,"tech":"FastAPI · Web 服务 · 路由","file":"knowledge-assistant/server.py"},
+            {"name":"index.py","category":1,"tech":"ChromaDB · 向量索引 · 切片","file":"knowledge-assistant/index.py"},
+            {"name":"rag_engine.py","category":1,"tech":"RAG 引擎 · DeepSeek · 对话记忆","file":"knowledge-assistant/rag_engine.py"},
+            {"name":"generate_explanation.py","category":1,"tech":"DeepSeek · 讲解预生成","file":"knowledge-assistant/generate_explanation.py"},
+            {"name":"chat.html","category":1,"tech":"ECharts 力导向图 · Jinja2","file":"knowledge-assistant/templates/chat.html"},
+            {"name":"reader.html","category":1,"tech":"代码阅读器 · 逐行讲解联动","file":"knowledge-assistant/templates/reader.html"},
+            {"name":"notebook.html","category":1,"tech":"笔记系统 · localStorage","file":"knowledge-assistant/templates/notebook.html"},
         ],
         "links": [
             {"source":"server.py","target":"rag_engine.py"},
@@ -356,15 +376,15 @@ GRAPH_DATA = {
     },
     "内网培训系统demo": {
         "nodes": [
-            {"name":"server.py","category":0,"tech":"FastAPI · QR登录 · RBAC · PyInstaller","file":r"E:/Trae CN/AI-Kart-Live/内网培训系统demo/server.py"},
-            {"name":"database.py","category":1,"tech":"SQLAlchemy · SQLite · bcrypt","file":r"E:/Trae CN/AI-Kart-Live/内网培训系统demo/database.py"},
-            {"name":"login.html","category":1,"tech":"QR码扫码 · 双向确认","file":r"E:/Trae CN/AI-Kart-Live/内网培训系统demo/templates/login.html"},
-            {"name":"admin_dashboard.html","category":1,"tech":"管理后台 · 数据总览","file":r"E:/Trae CN/AI-Kart-Live/内网培训系统demo/templates/admin_dashboard.html"},
-            {"name":"study.html","category":1,"tech":"学习页面 · 断点续学","file":r"E:/Trae CN/AI-Kart-Live/内网培训系统demo/templates/study.html"},
-            {"name":"quiz.html","category":1,"tech":"题库考试 · 自动判分","file":r"E:/Trae CN/AI-Kart-Live/内网培训系统demo/templates/quiz.html"},
-            {"name":"base.html","category":2,"tech":"Jinja2 基础模板","file":r"E:/Trae CN/AI-Kart-Live/内网培训系统demo/templates/base.html"},
-            {"name":"main.js","category":2,"tech":"前端交互逻辑","file":r"E:/Trae CN/AI-Kart-Live/内网培训系统demo/static/js/main.js"},
-            {"name":"style.css","category":2,"tech":"全局样式","file":r"E:/Trae CN/AI-Kart-Live/内网培训系统demo/static/css/style.css"},
+            {"name":"server.py","category":0,"tech":"FastAPI · QR登录 · RBAC · PyInstaller","file":"内网培训系统demo/server.py"},
+            {"name":"database.py","category":1,"tech":"SQLAlchemy · SQLite · bcrypt","file":"内网培训系统demo/database.py"},
+            {"name":"login.html","category":1,"tech":"QR码扫码 · 双向确认","file":"内网培训系统demo/templates/login.html"},
+            {"name":"admin_dashboard.html","category":1,"tech":"管理后台 · 数据总览","file":"内网培训系统demo/templates/admin_dashboard.html"},
+            {"name":"study.html","category":1,"tech":"学习页面 · 断点续学","file":"内网培训系统demo/templates/study.html"},
+            {"name":"quiz.html","category":1,"tech":"题库考试 · 自动判分","file":"内网培训系统demo/templates/quiz.html"},
+            {"name":"base.html","category":2,"tech":"Jinja2 基础模板","file":"内网培训系统demo/templates/base.html"},
+            {"name":"main.js","category":2,"tech":"前端交互逻辑","file":"内网培训系统demo/static/js/main.js"},
+            {"name":"style.css","category":2,"tech":"全局样式","file":"内网培训系统demo/static/css/style.css"},
         ],
         "links": [
             {"source":"server.py","target":"database.py"},
@@ -381,6 +401,11 @@ GRAPH_DATA = {
         ]
     },
 }
+
+# GRAPH_DATA 里存的是相对路径，启动时统一拼上工作区根目录，换环境不用改数据
+for _proj in GRAPH_DATA.values():
+    for _node in _proj["nodes"]:
+        _node["file"] = os.path.join(WORKSPACE_ROOT, _node["file"])
 
 if __name__ == "__main__":
     import uvicorn

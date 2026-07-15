@@ -27,14 +27,18 @@ from chromadb.api.types import EmbeddingFunction, Embeddings
 from sentence_transformers import SentenceTransformer
 
 # ── 配置 ──
-SCAN_DIRS = [
-    r"E:\Trae CN\AI-Kart-Live\TO DO",
-    r"E:\Trae CN\AI-Kart-Live\pos_daily_report",
-    r"E:\Trae CN\AI-Kart-Live\rfm_report",
-    r"E:\Trae CN\AI-Kart-Live\auto_video",
-    r"E:\Trae CN\AI-Kart-Live\live_stream",
-    r"E:\Trae CN\AI-Kart-Live\内网培训系统demo",
-]
+# 工作区根目录 = 本文件所在目录的上一级；上云换目录时用环境变量 KA_WORKSPACE_ROOT 覆盖
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+WORKSPACE_ROOT = os.getenv("KA_WORKSPACE_ROOT", os.path.dirname(BASE_DIR))
+
+SCAN_DIRS = [os.path.join(WORKSPACE_ROOT, name) for name in [
+    "TO DO",
+    "pos_daily_report",
+    "rfm_report",
+    "auto_video",
+    "live_stream",
+    "内网培训系统demo",
+]]
 
 CHUNK_SIZE = 800
 CHUNK_OVERLAP = 100
