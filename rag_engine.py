@@ -49,10 +49,32 @@ class ModelEmbedding(EmbeddingFunction):
         return self.model.encode(texts).tolist()
 
 
+# ── 模型单例缓存 ──
+# 启动时加载一次，后面所有问答复用。每问从 ~8 秒降到 ~2 秒。
+_embedding_cache: dict[str, ModelEmbedding] = {}
+_client_cache: dict[str, chromadb.PersistentClient] = {}
+
+
+def _get_embedding(model_key: str) -> ModelEmbedding:
+    """取缓存的 embedding 模型，没有就加载一个"""
+    if model_key not in _embedding_cache:
+        cfg = MODELS[model_key]
+        _embedding_cache[model_key] = ModelEmbedding(cfg["source"])
+    return _embedding_cache[model_key]
+
+
+def _get_client(model_key: str) -> chromadb.PersistentClient:
+    """取缓存的 ChromaDB 客户端"""
+    if model_key not in _client_cache:
+        cfg = MODELS[model_key]
+        _client_cache[model_key] = chromadb.PersistentClient(path=cfg["chroma_dir"])
+    return _client_cache[model_key]
+
+
 def query(question: str, model_key: str = "v2", top_k: int = TOP_K) -> list:
     cfg = MODELS[model_key]
-    client = chromadb.PersistentClient(path=cfg["chroma_dir"])
-    embed_fn = ModelEmbedding(cfg["source"])
+    client = _get_client(model_key)
+    embed_fn = _get_embedding(model_key)
     collection = client.get_collection(cfg["collection"], embedding_function=embed_fn)
 
     results = collection.query(query_texts=[question], n_results=top_k)
