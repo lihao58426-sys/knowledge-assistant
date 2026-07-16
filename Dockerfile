@@ -5,7 +5,7 @@
 # 构建：docker build -t knowledge-assistant .
 # 运行：docker run -p 8002:8002 -e DEEPSEEK_API_KEY=$DEEPSEEK_API_KEY knowledge-assistant
 
-FROM python:3.14-slim
+FROM pos-report:latest
 
 WORKDIR /app
 
