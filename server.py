@@ -5,9 +5,11 @@
 
 import os
 import json
+import secrets
+import base64
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from jinja2 import Environment, FileSystemLoader
 
@@ -38,7 +40,42 @@ def safe_path(filepath: str) -> str | None:
     return real
 
 
+# ── 访问鉴权 ──
+# 上云后必须设 KA_PASSWORD，所有页面需要密码才能访问。
+# 本地开发时不设 → 跳过鉴权，跟以前一样用。
+KA_PASSWORD = os.getenv("KA_PASSWORD", "")
+
+
+def _check_auth(request: Request) -> bool:
+    """检查请求是否带了正确的密码。没设密码时直接放行（本地模式）。"""
+    if not KA_PASSWORD:
+        return True  # 没设密码 = 本地开发模式，不拦
+
+    # HTTP Basic Auth: "Basic base64(username:password)"
+    auth = request.headers.get("Authorization", "")
+    if not auth.startswith("Basic "):
+        return False
+
+    try:
+        decoded = base64.b64decode(auth[6:]).decode("utf-8")
+        _, password = decoded.split(":", 1)
+        # 用 compare_digest 防时序攻击——两万标准程序员该知道的细节
+        return secrets.compare_digest(password, KA_PASSWORD)
+    except Exception:
+        return False
+
+
 app = FastAPI(title="知识库助手")
+
+# ── 鉴权中间件 ──
+# 每个请求先验证密码，不过的返回 401
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    if not _check_auth(request):
+        return JSONResponse({"detail": "请输入密码"}, status_code=401,
+                          headers={"WWW-Authenticate": 'Basic realm="Knowledge Assistant"'})
+    return await call_next(request)
+
 if not os.path.exists("static"):
     os.makedirs("static", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
