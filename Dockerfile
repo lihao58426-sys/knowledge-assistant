@@ -9,9 +9,13 @@ FROM pos-report:latest
 
 WORKDIR /app
 
-# Layer 1: 安装 Python 依赖（走阿里云镜像，不用 Docker Hub）
+# Layer 1: 安装 Python 依赖
+# 先装 CPU 版 torch（~200MB，无需 NVIDIA CUDA 包），再装其余依赖。
+# 知识助手只用 CPU 做向量化，不需要 GPU 加速。
 COPY requirements.txt .
-RUN pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ -r requirements.txt
+RUN pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ \
+        torch --extra-index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ -r requirements.txt
 
 # Layer 2: 拷项目全部文件
 COPY . .
