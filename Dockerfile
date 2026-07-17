@@ -9,10 +9,9 @@ FROM pos-report:latest
 
 WORKDIR /app
 
-# Layer 1: 安装 Python 依赖
-# 先拷 requirements.txt（利用 Docker 层缓存——依赖没变就不用重装）
+# Layer 1: 安装 Python 依赖（走阿里云镜像，不用 Docker Hub）
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ -r requirements.txt
 
 # Layer 2: 拷项目全部文件
 COPY . .
