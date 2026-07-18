@@ -16,6 +16,8 @@ services:
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}       # 从宿主机环境变量传入，不进镜像
       - KA_WORKSPACE_ROOT=/opt                      # 强制指向服务器工作区（容器内代码位置跟宿主机不同）
       - KA_PASSWORD=${KA_PASSWORD:-}             # 可选：设了则所有页面需要密码，不设则跳过鉴权（本地模式）
+      - HF_HUB_OFFLINE=1                            # 强制离线，不从 huggingface 联网
+      - TRANSFORMERS_OFFLINE=1                      # 同上
     volumes:
       - /opt:/opt                                    # 挂载服务器工作区（所有项目+TO DO）
       - ./chroma_db:/app/chroma_db                 # 向量库持久化：容器删了数据还在
