@@ -1,0 +1,39 @@
+[
+  {"id": 1, "question": "POS日报的爬虫是怎么防止被检测的？", "expect_files": ["crawler.py", "知识点总结-Playwright爬虫+反检测项目实战.md"], "category": "pos"},
+  {"id": 2, "question": "POS项目怎么支持多门店？", "expect_files": ["config.py", "config.yaml", "main.py"], "category": "pos"},
+  {"id": 3, "question": "POS日报的数据库存了什么？", "expect_files": ["database.py", "models.py"], "category": "pos"},
+  {"id": 4, "question": "POS的定时任务是怎么调度的？", "expect_files": ["main.py"], "category": "pos"},
+  {"id": 5, "question": "POS项目怎么发日报到企业微信？", "expect_files": ["pusher.py", "main.py"], "category": "pos"},
+
+  {"id": 6, "question": "ChromaDB是什么？知识库怎么用它做检索？", "expect_files": ["index.py", "rag_engine.py", "知识点总结-ChromaDB+RAG实战.md"], "category": "knowledge-assistant"},
+  {"id": 7, "question": "知识库的RAG流程是怎么工作的？", "expect_files": ["rag_engine.py", "知识点总结-RAG检索增强生成.md"], "category": "knowledge-assistant"},
+  {"id": 8, "question": "知识库怎么防止任意文件读取漏洞？", "expect_files": ["server.py"], "category": "knowledge-assistant"},
+  {"id": 9, "question": "知识库的路径配置怎么做的？为什么不用写死E盘路径？", "expect_files": ["server.py", "index.py", "知识点总结-环境变量与配置分离.md"], "category": "knowledge-assistant"},
+  {"id": 10, "question": "知识库的HTTP Basic Auth鉴权怎么实现的？", "expect_files": ["server.py", "知识点总结-鉴权.md"], "category": "knowledge-assistant"},
+
+  {"id": 11, "question": "RFM分析的8类客户是怎么划分的？", "expect_files": ["analysis.py"], "category": "rfm"},
+  {"id": 12, "question": "RFM三个字母R、F、M分别代表什么？", "expect_files": ["analysis.py", "知识点总结-RFM+会员运营方法论.md"], "category": "rfm"},
+  {"id": 13, "question": "RFM 2.0的数据库是怎么设计的？", "expect_files": ["database.py"], "category": "rfm"},
+  {"id": 14, "question": "RFM数据清洗有哪些步骤？", "expect_files": ["database.py", "知识点总结-数据清洗流水线.md"], "category": "rfm"},
+  {"id": 15, "question": "RFM查询页怎么做的会员动态分类筛选？", "expect_files": ["server.py", "database.py"], "category": "rfm"},
+
+  {"id": 16, "question": "Docker怎么在国内环境下构建镜像？", "expect_files": ["踩坑记录-Docker国内网络四方案排查.md", "踩坑记录-Docker构建网络问题全时间线.md", "知识点总结-部署策略三种方法.md"], "category": "docker"},
+  {"id": 17, "question": "Docker单文件挂载SQLite有什么问题？怎么解决？", "expect_files": ["知识点总结-排错思路.md"], "category": "docker"},
+  {"id": 18, "question": ".dockerignore和.gitignore有什么区别？", "expect_files": ["知识点总结-gitignore与dockerignore.md"], "category": "docker"},
+
+  {"id": 19, "question": "Agent是什么？Agent和普通程序的区别？", "expect_files": ["实施方案-Agent合并进POS.md", "知识点总结-Skill与Agent工具.md", "agent.py"], "category": "agent"},
+  {"id": 20, "question": "Agent的工具怎么包装和调用？", "expect_files": ["agent_tools.py", "agent_llm.py"], "category": "agent"},
+  {"id": 21, "question": "POS的Agent循环怎么工作的？", "expect_files": ["agent.py", "agent_llm.py"], "category": "agent"},
+
+  {"id": 22, "question": "环境变量是怎么实现代码与配置分离的？", "expect_files": ["知识点总结-环境变量与配置分离.md"], "category": "todo"},
+  {"id": 23, "question": "Atomic Commit是什么？为什么重要？", "expect_files": ["知识点总结-Atomic-Commit与工程化习惯.md"], "category": "todo"},
+  {"id": 24, "question": "什么是单例模式？知识库在哪里用到了？", "expect_files": ["知识点总结-单例模式.md", "rag_engine.py"], "category": "todo"},
+  {"id": 25, "question": "Embedding模型是干什么的？知识库用的哪个模型？", "expect_files": ["知识点总结-Embedding模型.md", "rag_engine.py", "index.py"], "category": "todo"},
+  {"id": 26, "question": "排错的基本思路是什么？", "expect_files": ["知识点总结-排错思路.md"], "category": "todo"},
+
+  {"id": 27, "question": "内网培训系统的登录是怎么做的？", "expect_files": ["server.py", "login.html"], "category": "neiwang"},
+  {"id": 28, "question": "内网培训系统有哪些用户权限等级？", "expect_files": ["server.py", "database.py"], "category": "neiwang"},
+  {"id": 29, "question": "内网培训系统的考试怎么判分？", "expect_files": ["server.py", "quiz.html"], "category": "neiwang"},
+
+  {"id": 30, "question": "整个工作空间有哪些项目？各自干什么？", "expect_files": ["项目分析-全部7项目综合分析.md", "README.md"], "category": "overview"}
+]
