@@ -80,9 +80,13 @@ def generate_report() -> str:
 
     report_md = "\n".join(lines)
     base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    path = os.path.join(base, "RAG评估报告-最新.md")
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(report_md)
+    # 带时间戳的存档（用于 A/B 对比，不覆盖旧报告）
+    stamp = datetime.now().strftime("%Y%m%d-%H%M")
+    path_latest = os.path.join(base, "RAG评估报告-最新.md")
+    path_archive = os.path.join(base, f"RAG评估报告-{stamp}.md")
+    for p in [path_latest, path_archive]:
+        with open(p, "w", encoding="utf-8") as f:
+            f.write(report_md)
     return report_md
 
 
