@@ -69,8 +69,14 @@ app = FastAPI(title="知识库助手")
 
 # ── 鉴权中间件 ──
 # 每个请求先验证密码，不过的返回 401
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next):
+    if request.url.path == "/health":
+        return await call_next(request)  # 健康检查免鉴权
     if not _check_auth(request):
         return JSONResponse({"detail": "请输入密码"}, status_code=401,
                           headers={"WWW-Authenticate": 'Basic realm="Knowledge Assistant"'})
