@@ -9,11 +9,16 @@ FROM python:3.14-slim
 
 WORKDIR /app
 
-# Layer 1: 安装 Python 依赖
-# 先装 CPU 版 torch（~200MB，无需 NVIDIA CUDA 包），再装其余依赖。
-# 知识助手只用 CPU 做向量化，不需要 GPU 加速。
+# Layer 1: 安装 Python 依赖（走阿里云镜像）
+# 构建参数 TORCH_CPU=1 时先装 CPU 版 torch（小 5GB，本机开发用）
+# 不传 TORCH_CPU 时走默认 torch（服务器用，会自动带 CUDA 依赖）
+ARG TORCH_CPU=0
 COPY requirements.txt .
-RUN pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ -r requirements.txt
+RUN if [ "$TORCH_CPU" = "1" ]; then \
+        pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ \
+            torch --extra-index-url https://download.pytorch.org/whl/cpu; \
+    fi && \
+    pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ -r requirements.txt
 
 # Layer 2: 拷项目全部文件
 COPY . .

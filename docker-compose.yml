@@ -6,8 +6,10 @@
 
 services:
   knowledge-assistant:
-    build: .
-    image: knowledge-assistant:latest
+    build:
+      context: .
+      args:
+        TORCH_CPU: ${TORCH_CPU:-0}   # 本机设 TORCH_CPU=1 装 CPU 版 torch（小 5GB），服务器不设
     container_name: knowledge-assistant
     restart: unless-stopped
     ports:
