@@ -56,16 +56,33 @@ knowledge-assistant/
 - 内网培训系统 (FastAPI + QR登录 + RBAC)
 - 知识库助手自身 (ChromaDB + RAG)
 
+## Docker 部署
+
+```bash
+docker compose up -d --build
+# 打开 http://localhost:8002
+```
+
+## 安全
+
+- HTTP Basic Auth（KA_PASSWORD 环境变量控制）
+- safe_path 路径白名单（防任意文件读取）
+- 文件读取转义（防 XSS）
+- 密钥不进镜像（运行时注入）
+
+## 在线 Demo
+
+https://你的域名:8002（备案后开放）
+
 ## 版本
 
 | 版本 | 标签 | 核心变化 |
 |------|------|---------|
 | V1 | v1.0 | RAG 基础链路（英文模型） |
 | V2 | v2.0 | 换中文模型 + 多模型统一架构 |
-| V3 | v3.1 | 增量索引 + 对话历史 + 项目筛选 + 导师模式 |
-| V3.2 | v3.2 | 阅读模式 + 预生成讲解 + 笔记系统 |
-| V3.3 | v3.3 | 力导向图交互改进 + 多语言讲解 + 6项目完整依赖图 |
+| V3.1 ~ V3.3 | v3.x | 增量索引+对话历史+项目筛选+导师+阅读+笔记 |
+| V3.4 | v3.4-cloud | 云部署 + 安全加固 + Docker + RAG 评估体系 |
 
 ## License
 
-Private — 个人项目
+MIT
