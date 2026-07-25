@@ -31,6 +31,26 @@ python server.py
 | 前端 | Vanilla JS + ECharts 力导向图 + localStorage |
 | 讲解 | DeepSeek 预生成 JSON，离线即时读取 |
 
+## 缓存（可选）
+
+默认不启用缓存。启动 Redis 后自动加速重复查询：
+
+```bash
+# 起 Redis
+docker run -d --name redis -p 6379:6379 redis:7-alpine
+
+# 设环境变量
+export REDIS_HOST=localhost
+export REDIS_PORT=6379
+
+# 启动服务——查询缓存 + 会话管理自动生效
+python server.py
+```
+
+- **查询缓存：** 同一问题 30 分钟内重复问，秒回不调 LLM
+- **会话持久化：** 服务器重启后对话历史不丢
+- **降级策略：** 连不上 Redis 自动跳过——查内存 dict，跟以前一样
+
 ## 项目结构
 
 ```
