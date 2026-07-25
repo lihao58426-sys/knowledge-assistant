@@ -167,7 +167,7 @@ def ask(question: str, model_key: str = "v2", session_id: str = "default", proje
         "Content-Type": "application/json",
     }
     data = {
-        "model": "deepseek-chat",
+        "model": "deepseek-v4-pro",
         "messages": messages,
         "temperature": 0.3,
         "max_tokens": 1200,

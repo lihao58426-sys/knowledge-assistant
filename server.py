@@ -3,10 +3,13 @@
 用法：python server.py → http://localhost:8002
 """
 
+import logging
 import os
 import json
 import secrets
 import base64
+
+logger = logging.getLogger(__name__)
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -150,7 +153,12 @@ async def api_ask(request: Request):
             request=request, error="请输入问题", active_project=project))
 
     session_id = request.client.host if request.client else "default"
-    a = ask(q, session_id=session_id, project_filter=project)
+    try:
+        a = ask(q, session_id=session_id, project_filter=project)
+    except Exception as e:
+        logger.error(f"AI 问答失败: {e}")
+        return HTMLResponse(jinja_env.get_template("chat.html").render(
+            request=request, error="AI 服务暂时不可用，请稍后重试", active_project=project))
 
     history = get_session(session_id)
     turns = len(history) // 2
