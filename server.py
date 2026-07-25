@@ -65,7 +65,16 @@ def _check_auth(request: Request) -> bool:
         return False
 
 
-app = FastAPI(title="知识库助手")
+app = FastAPI(
+    title="知识库助手",
+    description="基于 RAG 的个人知识库问答系统——支持语义搜索、代码导师、文档阅读。",
+    version="3.4",
+    openapi_tags=[
+        {"name": "Chat", "description": "AI 问答——RAG 检索 + LLM 生成回答"},
+        {"name": "Documents", "description": "文档阅读与讲解"},
+        {"name": "System", "description": "健康检查与监控"},
+    ],
+)
 
 
 # ── 统一响应格式 ──
@@ -80,7 +89,7 @@ def api_error(message: str, code: int = 400) -> JSONResponse:
 
 # ── 鉴权中间件 ──
 # 每个请求先验证密码，不过的返回 401
-@app.get("/health")
+@app.get("/health", tags=["System"])
 async def health_check():
     return {"status": "ok"}
 
@@ -153,7 +162,7 @@ async def api_ask(request: Request):
 
 # ── API v1（供 Vue 前端调用，返回 JSON）──
 
-@app.post("/api/v1/chat")
+@app.post("/api/v1/chat", tags=["Chat"])
 async def api_chat(request: Request):
     """AI 问答——JSON 接口，给前端调用"""
     try:
@@ -291,7 +300,7 @@ async def tutor_explain(request: Request):
 
 # ── 追问 API（reader 和 notebook 共用）──
 
-@app.post("/code-tutor/explain")
+@app.post("/code-tutor/explain", tags=["Documents"])
 async def code_tutor_explain(request: Request):
     """逐行讲解 API"""
     import requests as _r
