@@ -22,7 +22,7 @@ from sentence_transformers import SentenceTransformer
 from chromadb.api.types import EmbeddingFunction, Embeddings
 import requests
 
-from redis_cache import get_cached_answer, cache_answer
+from redis_cache import get_cached_answer, cache_answer, get_session as redis_get_session, save_session as redis_save_session
 
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
 DEEPSEEK_CHAT_URL = "https://api.deepseek.com/v1/chat/completions"
@@ -91,7 +91,13 @@ _sessions: dict[str, list] = {}  # session_id → [{role, content}, ...]
 
 
 def get_session(session_id: str = "default") -> list:
-    """获取或创建会话历史"""
+    """获取或创建会话历史——优先 Redis，内存 dict 做降级"""
+    # 优先从 Redis 读
+    history = redis_get_session(session_id)
+    if history is not None:
+        return history
+
+    # 降级：内存 dict
     if session_id not in _sessions:
         _sessions[session_id] = []
     return _sessions[session_id]
@@ -177,6 +183,9 @@ def ask(question: str, model_key: str = "v2", session_id: str = "default", proje
     if len(session) > MAX_HISTORY * 2:
         session.pop(0)
         session.pop(0)
+
+    # 同步到 Redis（Redis 不可用时自动跳过）
+    redis_save_session(session_id, session)
 
     # 去重来源
     seen = set()
