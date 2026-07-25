@@ -150,6 +150,31 @@ async def api_ask(request: Request):
         request=request, question=q, answer=a, turns=turns,
         active_project=project, mode="search", tutor_files=[], projects=PROJECT_ROOTS.keys()))
 
+
+# ── API v1（供 Vue 前端调用，返回 JSON）──
+
+@app.post("/api/v1/chat")
+async def api_chat(request: Request):
+    """AI 问答——JSON 接口，给前端调用"""
+    try:
+        body = await request.json()
+        q = body.get("question", "").strip()
+    except Exception:
+        return api_error("请求格式错误", 400)
+    if not q:
+        return api_error("问题不能为空", 422)
+
+    session_id = body.get("session_id", request.client.host if request.client else "default")
+    project = body.get("project", "")
+
+    try:
+        a = ask(q, session_id=session_id, project_filter=project)
+        return api_ok({"answer": a, "session_id": session_id})
+    except Exception as e:
+        logger.error(f"AI 问答失败: {e}")
+        return api_error("AI 服务暂时不可用", 500)
+
+
 # ── 阅读模式（V3.2）：预生成讲解 → 左右联动 ──
 
 @app.get("/reader", response_class=HTMLResponse)
