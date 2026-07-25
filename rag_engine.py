@@ -22,6 +22,8 @@ from sentence_transformers import SentenceTransformer
 from chromadb.api.types import EmbeddingFunction, Embeddings
 import requests
 
+from redis_cache import get_cached_answer, cache_answer
+
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
 DEEPSEEK_CHAT_URL = "https://api.deepseek.com/v1/chat/completions"
 TOP_K = 5
@@ -96,6 +98,11 @@ def get_session(session_id: str = "default") -> list:
 
 
 def ask(question: str, model_key: str = "v2", session_id: str = "default", project_filter: str = "") -> str:
+    # ── Redis 缓存检查 ──
+    cached = get_cached_answer(question)
+    if cached:
+        return f"{cached}\n\n*(来自缓存)*"
+
     # 检索
     results = query(question, model_key)
 
@@ -180,8 +187,12 @@ def ask(question: str, model_key: str = "v2", session_id: str = "default", proje
             seen.add(src)
             unique_sources.append(src)
     sources = "\n".join(f"  - {s}" for s in unique_sources)
+    final_answer = f"{answer}\n\n参考来源：\n{sources}"
 
-    return f"{answer}\n\n参考来源：\n{sources}"
+    # ── 存入 Redis 缓存 ──
+    cache_answer(question, final_answer)
+
+    return final_answer
 
 
 if __name__ == "__main__":
