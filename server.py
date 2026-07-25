@@ -67,6 +67,17 @@ def _check_auth(request: Request) -> bool:
 
 app = FastAPI(title="知识库助手")
 
+
+# ── 统一响应格式 ──
+def api_ok(data: dict | str | None = None) -> JSONResponse:
+    """成功响应"""
+    return JSONResponse({"code": 200, "data": data, "message": "ok"})
+
+
+def api_error(message: str, code: int = 400) -> JSONResponse:
+    """错误响应"""
+    return JSONResponse({"code": code, "data": None, "message": message}, status_code=code)
+
 # ── 鉴权中间件 ──
 # 每个请求先验证密码，不过的返回 401
 @app.get("/health")
@@ -265,7 +276,7 @@ async def code_tutor_explain(request: Request):
     context = form.get("context", "")
 
     if not filepath or not os.path.exists(filepath):
-        return HTMLResponse(json.dumps({"error": "文件不存在"}), media_type="application/json")
+        return api_error("文件不存在", 404)
 
     with open(filepath, "r", encoding="utf-8") as f:
         code = f.read()
@@ -291,7 +302,7 @@ async def code_tutor_explain(request: Request):
     resp.raise_for_status()
     answer = resp.json()["choices"][0]["message"]["content"].strip()
 
-    return HTMLResponse(json.dumps({"answer": answer}, ensure_ascii=False), media_type="application/json")
+    return api_ok({"answer": answer})
 
 
 @app.get("/notebook", response_class=HTMLResponse)
