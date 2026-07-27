@@ -98,8 +98,8 @@ async def health_check():
 
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next):
-    if request.url.path == "/health":
-        return await call_next(request)  # 健康检查免鉴权
+    if request.url.path in ("/health", "/app") or request.url.path.startswith("/app/"):
+        return await call_next(request)  # 健康检查和前端页面免鉴权
     if not _check_auth(request):
         return JSONResponse({"detail": "请输入密码"}, status_code=401,
                           headers={"WWW-Authenticate": 'Basic realm="Knowledge Assistant"'})
@@ -108,6 +108,7 @@ async def auth_middleware(request: Request, call_next):
 if not os.path.exists("static"):
     os.makedirs("static", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/app", StaticFiles(directory="ka-frontend", html=True), name="frontend")
 jinja_env = Environment(loader=FileSystemLoader("templates"))
 jinja_env.filters["urlencode"] = urlencode
 

@@ -48,7 +48,7 @@ def _retrieve(question: str) -> str:
 # ── 2. LLM —— 指向 DeepSeek ──
 
 _llm = ChatOpenAI(
-    model="deepseek-v4-pro",
+    model="deepseek-v4-flash",
     base_url="https://api.deepseek.com/v1",
     api_key=DEEPSEEK_API_KEY,
     temperature=0.3,

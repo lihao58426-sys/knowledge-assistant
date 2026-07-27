@@ -167,13 +167,13 @@ def ask(question: str, model_key: str = "v2", session_id: str = "default", proje
         "Content-Type": "application/json",
     }
     data = {
-        "model": "deepseek-v4-pro",
+        "model": "deepseek-v4-flash",
         "messages": messages,
         "temperature": 0.3,
         "max_tokens": 1200,
     }
 
-    resp = requests.post(DEEPSEEK_CHAT_URL, headers=headers, json=data, timeout=60)
+    resp = requests.post(DEEPSEEK_CHAT_URL, headers=headers, json=data, timeout=120)
     resp.raise_for_status()
     answer = resp.json()["choices"][0]["message"]["content"].strip()
 

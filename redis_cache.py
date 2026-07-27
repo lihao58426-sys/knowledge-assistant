@@ -15,15 +15,27 @@ logger = logging.getLogger(__name__)
 _redis_client = None
 
 
+import time as _time
+
+# 全局状态：避免每次请求都重试连 Redis
+_redis_client = None
+_redis_unavailable_until = 0.0  # 时间戳——在此之前不重试
+
+
 def _get_client():
-    """懒加载 Redis 连接——第一次调用时才连接，之后复用"""
-    global _redis_client
+    """懒加载 Redis 连接——连不上 60 秒内不再重试"""
+    global _redis_client, _redis_unavailable_until
+
+    now = _time.time()
+    if now < _redis_unavailable_until:
+        return None  # 刚才连不上，跳过
+
     if _redis_client is not None:
         try:
             _redis_client.ping()
             return _redis_client
         except Exception:
-            _redis_client = None  # 连接断了，重新连
+            _redis_client = None
 
     try:
         import redis
@@ -34,13 +46,15 @@ def _get_client():
 
         _redis_client = redis.Redis(
             host=host, port=port, db=db, password=password,
-            socket_connect_timeout=2, socket_timeout=2,
+            socket_connect_timeout=0.5, socket_timeout=0.5,
         )
         _redis_client.ping()
+        _redis_unavailable_until = 0.0  # 连上了，重置标记
         logger.info(f"Redis 已连接: {host}:{port}")
         return _redis_client
     except Exception:
-        logger.info("Redis 未连接——缓存功能跳过")
+        logger.info("Redis 未连接——60s 内不再重试")
+        _redis_unavailable_until = now + 60  # 60 秒内不走连接逻辑
         return None
 
 

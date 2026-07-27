@@ -4,27 +4,112 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>知识库助手</title>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="/static/vue.global.prod.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f5f5; }
-        #app { max-width: 800px; margin: 0 auto; padding: 20px; }
+        #app { max-width: 800px; margin: 0 auto; padding: 20px; min-height: 100vh; display: flex; flex-direction: column; }
+
+        .chat-area { flex: 1; overflow-y: auto; margin-bottom: 20px; }
+        .msg { margin-bottom: 16px; padding: 12px 16px; border-radius: 8px; line-height: 1.7; }
+        .msg.user { background: #e3f2fd; }
+        .msg.assistant { background: #fff; border: 1px solid #e0e0e0; }
+        .msg .role { font-size: 12px; color: #999; margin-bottom: 4px; }
+
+        .input-row { display: flex; gap: 10px; padding: 12px 0; border-top: 1px solid #e0e0e0; background: #f5f5f5; }
+        .input-row input { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; }
+        .input-row button { padding: 12px 24px; background: #1976d2; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; }
+        .input-row button:disabled { background: #90caf9; cursor: not-allowed; }
+
+        .loading { text-align: center; color: #999; padding: 20px; }
+        .error { color: #c62828; background: #ffebee; padding: 12px; border-radius: 6px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
     <div id="app">
-        <!-- 等下往这里填东西 -->
-        <h1>知识库助手 V4 — Vue 版</h1>
-        <p>Vue 3 已加载: {{ ready ? '✅' : '❌' }}</p>
+        <div style="padding:12px 0;color:#666;font-size:14px">知识库助手 — Vue 3 版</div>
+
+        <!-- 错误提示 -->
+        <div v-if="errorMsg" class="error">{{ errorMsg }}</div>
+
+        <!-- 对话区 -->
+        <div class="chat-area" ref="chatArea">
+            <div v-for="(msg, i) in messages" :key="i" :class="['msg', msg.role]">
+                <div class="role">{{ msg.role === 'user' ? '你' : 'AI 助手' }}</div>
+                <div v-html="msg.content"></div>
+            </div>
+            <div v-if="loading" class="loading">思考中...</div>
+        </div>
+
+        <!-- 输入区 -->
+        <div class="input-row">
+            <input
+                v-model="question"
+                @keyup.enter="ask"
+                placeholder="输入问题，回车发送"
+                :disabled="loading"
+            />
+            <button @click="ask" :disabled="loading || !question.trim()">发送</button>
+        </div>
     </div>
 
     <script>
-        const { createApp, ref } = Vue
+        const { createApp, ref, nextTick } = Vue
 
         createApp({
             setup() {
-                const ready = ref(true)
-                return { ready }
+                const question = ref('')
+                const messages = ref([])
+                const loading = ref(false)
+                const errorMsg = ref('')
+                const chatArea = ref(null)
+
+                async function ask() {
+                    const q = question.value.trim()
+                    if (!q || loading.value) return
+
+                    // 显示用户问题
+                    messages.value.push({ role: 'user', content: escapeHtml(q) })
+                    question.value = ''
+                    loading.value = true
+                    errorMsg.value = ''
+
+                    try {
+                        const resp = await fetch('/api/v1/chat', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ question: q }),
+                        })
+                        const body = await resp.json()
+
+                        if (body.code === 200 && body.data) {
+                            const answer = body.data.answer
+                                .replace(/\n/g, '<br>')
+                                .replace(/`{3}(\w*)/g, '<pre><code>')
+                                .replace(/`{3}/g, '</code></pre>')
+                                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                            messages.value.push({ role: 'assistant', content: answer })
+                        } else {
+                            errorMsg.value = body.message || '请求失败'
+                        }
+                    } catch (e) {
+                        errorMsg.value = '网络错误，请检查服务是否启动'
+                    } finally {
+                        loading.value = false
+                        await nextTick()
+                        // 滚到底部
+                        const el = chatArea.value
+                        if (el) el.scrollTop = el.scrollHeight
+                    }
+                }
+
+                function escapeHtml(text) {
+                    const div = document.createElement('div')
+                    div.textContent = text
+                    return div.innerHTML
+                }
+
+                return { question, messages, loading, errorMsg, chatArea, ask }
             }
         }).mount('#app')
     </script>
