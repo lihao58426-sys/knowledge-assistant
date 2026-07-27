@@ -26,29 +26,32 @@ def load_questions(path: str = "tests/eval_questions.json") -> list[dict]:
 
 def judge_answer(question: str, answer: str) -> dict:
     """让 DeepSeek 打分：准确性、完整性、有用性各 1-5"""
-    prompt = f"""你是一个严格的技术评审。给以下 AI 回答打分。
+    prompt = f"""给以下AI回答打分（1差5完美），输出JSON：{{"准确性":整数,"完整性":整数,"有用性":整数}}
 
 问题：{question}
-
-AI 回答：
-{answer}
-
-请从三个维度打分（1=很差, 5=完美），只输出 JSON，不要解释：
-{{"accuracy": <1-5>, "completeness": <1-5>, "usefulness": <1-5>}}"""
+回答：{answer}"""
 
     headers = {"Authorization": f"Bearer {DEEPSEEK_API_KEY}", "Content-Type": "application/json"}
     data = {
-        "model": "deepseek-chat",
+        "model": "deepseek-v4-pro",
         "messages": [{"role": "user", "content": prompt}],
-        "temperature": 0.1, "max_tokens": 100,
+        "temperature": 0, "max_tokens": 1000,
     }
     resp = requests.post(DEEPSEEK_URL, headers=headers, json=data, timeout=60)
     resp.raise_for_status()
-    raw = resp.json()["choices"][0]["message"]["content"].strip()
+    body = resp.json()
+    raw = body["choices"][0]["message"]["content"].strip()
 
-    # 解析 JSON
-    if raw.startswith("```"): raw = raw.split("\n", 1)[1].rsplit("\n```", 1)[0]
-    return json.loads(raw)
+    if not raw:
+        finish_reason = body["choices"][0].get("finish_reason", "unknown")
+        raise ValueError(f"DeepSeek 返回空内容，finish_reason={finish_reason}")
+
+    # 把模型多说的一切都容忍——只提取第一个 { 到最后一个 } 之间的 JSON
+    import re
+    match = re.search(r'\{[^{}]*"准确性"[^{}]*"完整性"[^{}]*"有用性"[^{}]*\}', raw)
+    if match:
+        return json.loads(match.group())
+    raise ValueError(f"JSON 提取失败: {raw[:100]}")
 
 
 def evaluate_with_judge(questions: list[dict], top_n: int = 30) -> dict:
@@ -69,16 +72,16 @@ def evaluate_with_judge(questions: list[dict], top_n: int = 30) -> dict:
             print(f"  打分失败: {e}")
             scores = {"accuracy": 0, "completeness": 0, "usefulness": 0}
 
-        total["accuracy"] += scores.get("accuracy", 0)
-        total["completeness"] += scores.get("completeness", 0)
-        total["usefulness"] += scores.get("usefulness", 0)
+        total["accuracy"] += scores.get("准确性", scores.get("accuracy", 0))
+        total["completeness"] += scores.get("完整性", scores.get("completeness", 0))
+        total["usefulness"] += scores.get("有用性", scores.get("usefulness", 0))
 
         results.append({
             "id": q["id"], "question": q["question"],
             "scores": scores,
             "answer_preview": answer_clean[:100],
         })
-        print(f"  准确性:{scores.get('accuracy',0)} 完整性:{scores.get('completeness',0)} 有用性:{scores.get('usefulness',0)}")
+        print(f"  准确性:{scores.get('准确性',0)} 完整性:{scores.get('完整性',0)} 有用性:{scores.get('有用性',0)}")
         time.sleep(0.5)
 
     n = len(results) or 1
