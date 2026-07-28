@@ -114,7 +114,8 @@ def scan_files(dirs: list) -> list:
     return files
 
 
-def chunk_text(text: str, source: str) -> list:
+def _chunk_simple(text: str, source: str) -> list:
+    """滑动窗口切分——固定 800 字符 + 100 overlap。给通用文件类型用。"""
     chunks = []
     text = text.strip()
     if not text:
@@ -131,6 +132,11 @@ def chunk_text(text: str, source: str) -> list:
             })
         start += CHUNK_SIZE - CHUNK_OVERLAP
     return chunks
+
+
+def chunk_text(text: str, source: str) -> list:
+    """文档切片——总入口。目前所有文件走简单切分，后续按类型分发。"""
+    return _chunk_simple(text, source)
 
 
 def build_index(model_key: str = "v2", incremental: bool = False):
