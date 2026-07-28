@@ -277,6 +277,19 @@ def build_index(model_key: str = "v2", incremental: bool = False):
                 except Exception:
                     pass
             print(f"  已删除 {len(files)} 个变动文件的旧索引")
+
+            # 检出本地已删除的文件，从 Chroma 中也删掉
+            current_set = set(scan_files(SCAN_DIRS))
+            deleted = [path for path in old_fps if path not in current_set]
+            if deleted:
+                print(f"  检测到 {len(deleted)} 个已删除文件，清理索引...")
+                for path in deleted:
+                    try:
+                        collection.delete(where={"source": path})
+                    except Exception:
+                        pass
+                    old_fps.pop(path, None)
+                print(f"  已清理 {len(deleted)} 个")
         except Exception:
             # collection 不存在 → 创建新的
             collection = client.create_collection(
