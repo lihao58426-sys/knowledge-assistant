@@ -10,6 +10,7 @@
 """
 
 import os
+import re
 
 # ── 离线模型加载 ──
 # sentence-transformers 默认每次加载模型都会联网到 huggingface.co 检查更新。
@@ -131,6 +132,27 @@ def _chunk_simple(text: str, source: str) -> list:
                 "position": f"{start}-{end}"
             })
         start += CHUNK_SIZE - CHUNK_OVERLAP
+    return chunks
+
+
+def _chunk_markdown(text: str, source: str) -> list:
+    """Markdown 文档切分——先按 ## 标题边界拆，长段退回滑动窗口
+
+    思路：一个 ## 标题 = 一个知识点。在标题处断不会把两个主题混在一起。
+    短段（≤800 字符）整段作为一个 chunk，长段用滑动窗口补切。
+    """
+    chunks = []
+    # 按 ## 标题拆——保留标题跟后续内容在一起
+    sections = re.split(r'\n(?=## )', text)
+    for sec in sections:
+        sec = sec.strip()
+        if not sec:
+            continue
+        if len(sec) <= CHUNK_SIZE:
+            chunks.append({"text": sec, "source": source, "position": "markdown-section"})
+        else:
+            # 段落太长 → 退回滑动窗口
+            chunks.extend(_chunk_simple(sec, source))
     return chunks
 
 
