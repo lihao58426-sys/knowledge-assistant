@@ -7,5 +7,7 @@ chroma_db*/
 .explanations/.*
 # 临时脚本
 _gen_batch.py
+# 索引指纹（每次重建自动更新）
+.index_fingerprint.json
 # 运行日志
 *.log
