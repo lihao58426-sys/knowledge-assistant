@@ -115,8 +115,12 @@ def scan_files(dirs: list) -> list:
     return files
 
 
-def _chunk_simple(text: str, source: str) -> list:
-    """滑动窗口切分——固定 800 字符 + 100 overlap。给通用文件类型用。"""
+def _chunk_simple(text: str, source: str, offset: int = 0) -> list:
+    """滑动窗口切分——固定 800 字符 + 100 overlap。给通用文件类型用。
+
+    offset: 字符位置偏移——当被 _chunk_code/_chunk_markdown 退回调用时，
+           确保不同 section 的 position 不冲突。
+    """
     chunks = []
     text = text.strip()
     if not text:
@@ -129,7 +133,7 @@ def _chunk_simple(text: str, source: str) -> list:
             chunks.append({
                 "text": segment,
                 "source": source,
-                "position": f"{start}-{end}"
+                "position": f"{offset + start}-{offset + end}"
             })
         start += CHUNK_SIZE - CHUNK_OVERLAP
     return chunks
@@ -144,21 +148,71 @@ def _chunk_markdown(text: str, source: str) -> list:
     chunks = []
     # 按 ## 标题拆——保留标题跟后续内容在一起
     sections = re.split(r'\n(?=## )', text)
-    for sec in sections:
+    offset = 0
+    for idx, sec in enumerate(sections):
         sec = sec.strip()
         if not sec:
+            offset += len(sections[idx]) + 1  # +1 for the \n that was consumed
             continue
         if len(sec) <= CHUNK_SIZE:
-            chunks.append({"text": sec, "source": source, "position": "markdown-section"})
+            chunks.append({"text": sec, "source": source, "position": f"md-section-{idx}"})
         else:
-            # 段落太长 → 退回滑动窗口
-            chunks.extend(_chunk_simple(sec, source))
+            # 段落太长 → 退回滑动窗口（带 offset，避免 position 冲突）
+            chunks.extend(_chunk_simple(sec, source, offset=offset))
+        offset += len(sections[idx]) + 1
+    return chunks
+
+
+def _chunk_code(text: str, source: str) -> list:
+    """Python 代码切分——按 def/class 函数边界，不在函数中间切断
+
+    用正则找到所有 def/class/async def 的行位置作为切分点。
+    相邻切分点之间 = 一个函数 = 一个 chunk。
+    单个函数超过 CHUNK_SIZE → 退回滑动窗口。
+    """
+    chunks = []
+    lines = text.split('\n')
+    # 找到所有函数/类定义行
+    boundaries = [i for i, line in enumerate(lines)
+                  if re.match(r'^(async def |def |class )', line.strip())]
+
+    if not boundaries:
+        # 没有函数/类定义 → 退回简单切分
+        return _chunk_simple(text, source)
+
+    # 第一个边界之前的代码（imports、注释等）→ 单独一个 chunk
+    if boundaries[0] > 0:
+        header = '\n'.join(lines[:boundaries[0]]).strip()
+        if header:
+            chunks.append({"text": header, "source": source, "position": f"0-{boundaries[0]}"})
+
+    for i, start in enumerate(boundaries):
+        end = boundaries[i + 1] if i + 1 < len(boundaries) else len(lines)
+        block = '\n'.join(lines[start:end]).strip()
+        if not block:
+            continue
+        if len(block) <= CHUNK_SIZE:
+            chunks.append({"text": block, "source": source, "position": f"L{start}-L{end}"})
+        else:
+            # 单个函数太长 → 退回滑动窗口（偏移用行号估算）
+            char_offset = sum(len(lines[k]) + 1 for k in range(start))
+            chunks.extend(_chunk_simple(block, source, offset=char_offset))
+
     return chunks
 
 
 def chunk_text(text: str, source: str) -> list:
-    """文档切片——总入口。目前所有文件走简单切分，后续按类型分发。"""
-    return _chunk_simple(text, source)
+    """文档切片——总入口。按文件类型分发到不同策略：
+        .py → _chunk_code()      按函数/类边界
+        .md → _chunk_markdown()  按 ## 标题边界
+        其他 → _chunk_simple()   滑动窗口（原逻辑）
+    """
+    if source.endswith('.py'):
+        return _chunk_code(text, source)
+    elif source.endswith('.md'):
+        return _chunk_markdown(text, source)
+    else:
+        return _chunk_simple(text, source)
 
 
 def build_index(model_key: str = "v2", incremental: bool = False):
