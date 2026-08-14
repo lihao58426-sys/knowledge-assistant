@@ -3,8 +3,8 @@ chroma_db*/
 *.pyc
 .pytest_cache/
 .model-cache/
-# 讲解目录 - 排除重复/隐藏文件
-.explanations/.*
+# 讲解目录 - 预生成讲解缓存，不入库
+.explanations/
 # 临时脚本
 _gen_batch.py
 # 索引指纹（每次重建自动更新）
