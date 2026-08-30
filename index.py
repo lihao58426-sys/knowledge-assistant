@@ -33,7 +33,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 WORKSPACE_ROOT = os.getenv("KA_WORKSPACE_ROOT", os.path.dirname(BASE_DIR))
 
 SCAN_DIRS = [os.path.join(WORKSPACE_ROOT, name) for name in [
-    "TO DO",
+    "knowledge-notes",
     "pos_daily_report",
     "rfm_report",
     "auto_video",

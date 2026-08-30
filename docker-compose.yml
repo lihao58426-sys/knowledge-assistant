@@ -9,7 +9,7 @@ services:
     build:
       context: .
       args:
-        TORCH_CPU: ${TORCH_CPU:-0}   # 本机设 TORCH_CPU=1 装 CPU 版 torch（小 5GB），服务器不设
+        TORCH_CPU: ${TORCH_CPU:-1}   # 默认 CPU 版（省 ~8GB）；有 GPU 才设 0 装 CUDA 版
     container_name: knowledge-assistant
     restart: unless-stopped
     ports:
@@ -21,5 +21,10 @@ services:
       - HF_HUB_OFFLINE=1                            # 强制离线，不从 huggingface 联网
       - TRANSFORMERS_OFFLINE=1                      # 同上
     volumes:
-      - /opt:/opt                                    # 挂载服务器工作区（所有项目+TO DO）
+      - E:\Trae CN\AI-Kart-Live:/opt                   # 挂载工作区（所有项目+TO DO），容器的 /opt ↔ 宿主机实际路径
       - ./chroma_db:/app/chroma_db                 # 向量库持久化：容器删了数据还在
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

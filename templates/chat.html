@@ -104,7 +104,7 @@
 <!-- ═══════════ 文档模式 ═══════════ -->
 {% if doc_files %}
 <div class="step" style="max-width:700px;margin:0 auto">
-  <h2 style="font-size:16px;color:#1e293b;margin-bottom:14px">📄 TO DO 知识文档（{{ doc_files|length }} 篇）</h2>
+  <h2 style="font-size:16px;color:#1e293b;margin-bottom:14px">📄 知识笔记文档（{{ doc_files|length }} 篇）</h2>
   <div style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04)">
   {% for f in doc_files %}
     <a href="/reader?project=&file={{ f|urlencode }}" style="display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid #f1f5f9;text-decoration:none;color:#1e293b;font-size:14px">

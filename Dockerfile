@@ -9,16 +9,17 @@ FROM python:3.14-slim
 
 WORKDIR /app
 
-# Layer 1: 安装 Python 依赖（走阿里云镜像）
-# 构建参数 TORCH_CPU=1 时先装 CPU 版 torch（小 5GB，本机开发用）
-# 不传 TORCH_CPU 时走默认 torch（服务器用，会自动带 CUDA 依赖）
-ARG TORCH_CPU=0
+# Layer 1: 安装 Python 依赖（走清华镜像）
+# 构建参数 TORCH_CPU=1 时先装 CPU 版 torch（省 ~8GB，本机/无GPU服务器用）
+# 有 GPU 需要 CUDA 加速时，设 TORCH_CPU=0
+ARG TORCH_CPU=1
 COPY requirements.txt .
 RUN if [ "$TORCH_CPU" = "1" ]; then \
-        pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ \
-            torch --extra-index-url https://download.pytorch.org/whl/cpu; \
+        pip install --no-cache-dir torch \
+            --index-url https://download.pytorch.org/whl/cpu \
+            --default-timeout=1000; \
     fi && \
-    pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ -r requirements.txt
+    pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple/ -r requirements.txt
 
 # Layer 2: 拷项目全部文件
 COPY . .

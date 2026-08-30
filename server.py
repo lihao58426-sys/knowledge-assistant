@@ -133,7 +133,7 @@ async def home(request: Request):
     # 文档模式 — 加载 TO DO 文件夹
     doc_files = []
     if mode == "docs":
-        todo = os.path.join(WORKSPACE_ROOT, "TO DO")
+        todo = os.path.join(WORKSPACE_ROOT, "knowledge-notes")
         if os.path.exists(todo):
             for f in sorted(os.listdir(todo)):
                 if f.endswith(".md"):
